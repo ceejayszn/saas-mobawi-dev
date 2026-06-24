@@ -1,17 +1,33 @@
-# felix_app
+# Hotel POS System
 
-A new Flutter project.
+This repository contains the completely refactored POS system.
 
-## Getting Started
+## Project Structure
+- `/operations_app`: The original POS interface stripped of complex UI changes and M-Pesa logic. It is strictly meant for data-entry.
+- `/boss_app`: A premium, dark-themed analytical dashboard for management oversight. Contains interactive charts, system health monitoring, and activity logging.
+- `/backend_api`: A centralized Node.js/Express backend that provides a RESTful API and connects to PostgreSQL using Prisma ORM.
 
-This project is a starting point for a Flutter application.
+## How to run locally
 
-A few resources to get you started if this is your first Flutter project:
+### Backend
+```bash
+cd backend_api
+npm install
+npx prisma generate
+npx ts-node src/index.ts
+```
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+### Operations App
+```bash
+cd operations_app
+flutter run
+```
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+### Boss App
+```bash
+cd boss_app
+flutter run -d chrome
+```
+
+## History
+This repository includes a full rollback to a simpler architecture per management request, moving all analytics and executive functions into an independent module. Git tracking was introduced to prevent future source code loss.
