@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'presentation/theme/app_theme.dart';
 import 'package:provider/provider.dart';
 import 'presentation/providers/app_provider.dart';
 import 'presentation/providers/expense_provider.dart';
@@ -33,11 +34,7 @@ class OperationsApp extends StatelessWidget {
     return MaterialApp(
       title: 'Operations App',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        primaryColor: const Color(0xFF1B5E20),
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF1B5E20)),
-      ),
+      theme: AppTheme.lightTheme,
       home: const SplashScreen(),
     );
   }

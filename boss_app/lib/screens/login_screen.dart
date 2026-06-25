@@ -9,93 +9,132 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _passwordController = TextEditingController();
-  bool _isLoading = false;
-  String? _errorText;
+  final TextEditingController _passwordController = TextEditingController();
+  bool _obscurePassword = true;
+  String _errorMessage = '';
+  int _failedAttempts = 0;
 
-  void _login() async {
-    setState(() {
-      _isLoading = true;
-      _errorText = null;
-    });
+  static const String _adminPassword = '8890';
 
-    // Mock API delay
-    await Future.delayed(const Duration(seconds: 1));
-
-    if (_passwordController.text == '8890') { // Master password
-      if (!mounted) return;
+  void _attemptLogin() {
+    if (_passwordController.text == _adminPassword) {
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const MainDashboard()),
+        MaterialPageRoute(builder: (context) => const MainDashboard()),
       );
     } else {
       setState(() {
-        _errorText = 'Invalid password';
-        _isLoading = false;
+        _failedAttempts++;
+        _errorMessage = _failedAttempts >= 3
+            ? 'Too many failed attempts. Account may be locked.'
+            : 'Incorrect password. Please try again.';
+        _passwordController.clear();
       });
     }
   }
 
   @override
+  void dispose() {
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
-      body: Center(
-        child: Container(
-          width: 400,
-          padding: const EdgeInsets.all(40),
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.2),
-                blurRadius: 20,
-                offset: const Offset(0, 10),
-              )
-            ],
-          ),
+      backgroundColor: const Color(0xFFF8F9FA),
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Color(0xFF1B5E20)),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+      ),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Column(
-            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(Icons.security, size: 60, color: Color(0xFF6C63FF)),
               const SizedBox(height: 20),
-              Text(
-                'Executive Access',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                'Please enter the master password.',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey),
-              ),
-              const SizedBox(height: 30),
-              TextField(
-                controller: _passwordController,
-                obscureText: true,
-                decoration: InputDecoration(
-                  labelText: 'Password',
-                  errorText: _errorText,
-                  prefixIcon: const Icon(Icons.lock),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
+              const Text(
+                'Admin Access',
+                style: TextStyle(
+                  fontSize: 30,
+                  fontWeight: FontWeight.w900,
+                  color: Color(0xFF1B5E20),
                 ),
-                onSubmitted: (_) => _login(),
               ),
-              const SizedBox(height: 30),
+              const SizedBox(height: 8),
+              const Text(
+                'Enter your admin password to continue',
+                style: TextStyle(fontSize: 15, color: Colors.grey),
+              ),
+              const SizedBox(height: 40),
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: TextField(
+                  controller: _passwordController,
+                  obscureText: _obscurePassword,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    hintText: 'Enter password',
+                    hintStyle: TextStyle(color: Colors.grey[400]),
+                    prefixIcon: const Icon(Icons.lock_outline, color: Color(0xFF1B5E20)),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                        color: Colors.grey,
+                      ),
+                      onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                    ),
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+                  ),
+                  onSubmitted: (_) => _attemptLogin(),
+                ),
+              ),
+              if (_errorMessage.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    const Icon(Icons.error_outline, color: Colors.red, size: 16),
+                    const SizedBox(width: 6),
+                    Text(
+                      _errorMessage,
+                      style: const TextStyle(color: Colors.red, fontSize: 13),
+                    ),
+                  ],
+                ),
+              ],
+              const SizedBox(height: 28),
               SizedBox(
                 width: double.infinity,
-                height: 50,
+                height: 58,
                 child: ElevatedButton(
+                  onPressed: _attemptLogin,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF6C63FF),
+                    backgroundColor: const Color(0xFF1B5E20),
                     foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    elevation: 4,
                   ),
-                  onPressed: _isLoading ? null : _login,
-                  child: _isLoading 
-                    ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                    : const Text('Access Dashboard', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  child: const Text(
+                    'ENTER ADMIN PANEL',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, letterSpacing: 1.5),
+                  ),
                 ),
               ),
             ],

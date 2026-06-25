@@ -1,177 +1,233 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:intl/intl.dart';
-import 'package:pdf/pdf.dart';
-import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
-import '../../providers/report_provider.dart';
 import '../../widgets/custom_widgets.dart';
 
-class ReportsScreen extends StatelessWidget {
+class ReportsScreen extends StatefulWidget {
   const ReportsScreen({super.key});
+
+  @override
+  State<ReportsScreen> createState() => _ReportsScreenState();
+}
+
+class _ReportsScreenState extends State<ReportsScreen> {
+  int _selectedTab = 0; // 0: Today, 1: This Week, 2: This Month
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Financial Reports'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: Row(
+          children: const [
+            Icon(Icons.bolt, color: Colors.orange),
+            SizedBox(width: 8),
+            Text('Boss Analytics', style: TextStyle(fontWeight: FontWeight.bold)),
+          ],
+        ),
         actions: [
-          IconButton(
-            onPressed: () => context.read<ReportProvider>().refreshReports(),
-            icon: const Icon(Icons.refresh),
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert),
+            onSelected: (value) {
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$value selected')));
+            },
+            itemBuilder: (BuildContext context) {
+              return [
+                const PopupMenuItem<String>(
+                  value: 'Godmode',
+                  child: ListTile(
+                    leading: Icon(Icons.admin_panel_settings, color: Colors.red),
+                    title: Text('Godmode'),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+                const PopupMenuItem<String>(
+                  value: 'Pick Date',
+                  child: ListTile(
+                    leading: Icon(Icons.calendar_month, color: Colors.teal),
+                    title: Text('Pick Date (Calendar)'),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+                const PopupMenuItem<String>(
+                  value: 'Share',
+                  child: ListTile(
+                    leading: Icon(Icons.share, color: Colors.black54),
+                    title: Text('Share Text Report'),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+                const PopupMenuItem<String>(
+                  value: 'Export CSV',
+                  child: ListTile(
+                    leading: Icon(Icons.table_chart, color: Colors.green),
+                    title: Text('Export CSV (Excel)'),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+                const PopupMenuItem<String>(
+                  value: 'Backup',
+                  child: ListTile(
+                    leading: Icon(Icons.download, color: Colors.blue),
+                    title: Text('Backup Database (Encrypted)'),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+                const PopupMenuItem<String>(
+                  value: 'Restore',
+                  child: ListTile(
+                    leading: Icon(Icons.upload_file, color: Colors.orange),
+                    title: Text('Restore Database (from Euton Data)'),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+              ];
+            },
           ),
         ],
       ),
-      body: Consumer<ReportProvider>(
-        builder: (context, report, child) {
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            // Tabs
+            Row(
               children: [
-                const Text(
-                  'Daily Summary',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: SummaryCard(
-                        label: 'Sales',
-                        value: 'KES ${report.totalSales.toStringAsFixed(0)}',
-                        icon: Icons.payments,
-                        color: Colors.green,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: SummaryCard(
-                        label: 'Expenses',
-                        value: 'KES ${report.totalExpenses.toStringAsFixed(0)}',
-                        icon: Icons.money_off,
-                        color: Colors.red,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                AppCard(
-                  color: Theme.of(context).primaryColor,
-                  child: Row(
+                _buildTab('Today', 0, Icons.calendar_today),
+                _buildTab('This Week', 1, Icons.date_range),
+                _buildTab('This Month', 2, Icons.calendar_view_month),
+              ],
+            ),
+            const SizedBox(height: 24),
+            // Big Green Card
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1B5E20),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: const [
+                      Icon(Icons.trending_up, color: Colors.white70, size: 18),
+                      SizedBox(width: 8),
+                      Text('NET PROFIT / LOSS', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'KES 0',
+                    style: TextStyle(color: Colors.white, fontSize: 40, fontWeight: FontWeight.w900),
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Column(
+                      Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Net Profit', style: TextStyle(color: Colors.white70, fontSize: 14)),
+                        children: const [
+                          Text('Gross Revenue', style: TextStyle(color: Colors.white70)),
                           SizedBox(height: 4),
+                          Text('KES 0', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
                         ],
                       ),
-                      const Spacer(),
-                      Text(
-                        'KES ${report.netProfit.toStringAsFixed(0)}',
-                        style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w900),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: const [
+                          Text('Total Costs', style: TextStyle(color: Colors.white70)),
+                          SizedBox(height: 4),
+                          Text('KES 0', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                        ],
                       ),
                     ],
                   ),
-                ),
-                const SizedBox(height: 32),
-                const Text(
-                  'Insights',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 16),
-                _buildInsightTile(
-                  context,
-                  title: 'Order Volume',
-                  subtitle: 'Total orders processed today',
-                  value: report.orderCount.toString(),
-                  icon: Icons.receipt_long,
-                  color: Colors.blue,
-                ),
-                const SizedBox(height: 40),
-                PrimaryButton(
-                  label: 'EXPORT AS PDF REPORT',
-                  onTap: () => _generatePdf(context, report),
-                  icon: Icons.picture_as_pdf,
-                ),
-                const SizedBox(height: 12),
-                TextButton(
-                  onPressed: () {},
-                  child: const Center(
-                    child: Text('PRINT SHIFT SUMMARY', style: TextStyle(color: Colors.grey)),
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildInsightTile(BuildContext context, {required String title, required String subtitle, required String value, required IconData icon, required Color color}) {
-    return AppCard(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
-            child: Icon(icon, color: color),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            const SizedBox(height: 24),
+            // Grid
+            GridView.count(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              crossAxisCount: 2,
+              childAspectRatio: 1.3,
+              mainAxisSpacing: 16,
+              crossAxisSpacing: 16,
               children: [
-                Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                Text(subtitle, style: TextStyle(color: Colors.grey[600], fontSize: 13)),
+                _buildStatCard('KES 0', 'Gross Revenue', Icons.trending_up, Colors.teal),
+                _buildStatCard('KES 0', 'Total Costs', Icons.trending_down, Colors.redAccent),
+                _buildStatCard('KES 0', 'M-Pesa Income', Icons.phone_android, Colors.green),
+                _buildStatCard('KES 0', 'Cash on Hand', Icons.money, Colors.blue),
+                _buildStatCard('KES 0', 'Eat In Revenue', Icons.restaurant, Colors.orange),
+                _buildStatCard('KES 0', 'Delivery Revenue', Icons.delivery_dining, Colors.purple),
               ],
             ),
-          ),
-          Text(
-            value,
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _generatePdf(BuildContext context, ReportProvider report) async {
-    final pdf = pw.Document();
-    final today = DateFormat('MMM dd, yyyy').format(DateTime.now());
-    
-    pdf.addPage(
-      pw.Page(
-        build: (pw.Context context) => pw.Column(
-          crossAxisAlignment: pw.CrossAxisAlignment.start,
-          children: [
-            pw.Header(level: 0, text: 'EUTON HOTEL - Daily Financial Report'),
-            pw.Text('Date: $today'),
-            pw.SizedBox(height: 30),
-            pw.TableHelper.fromTextArray(
-              headers: ['Metric', 'Amount (KES)'],
-              data: [
-                ['Total Sales', report.totalSales.toStringAsFixed(2)],
-                ['Total Expenses', report.totalExpenses.toStringAsFixed(2)],
-                ['Net Profit', report.netProfit.toStringAsFixed(2)],
-                ['Total Orders', report.orderCount.toString()],
-              ],
-              headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-              cellHeight: 30,
-              cellAlignments: {0: pw.Alignment.centerLeft, 1: pw.Alignment.centerRight},
-            ),
-            pw.SizedBox(height: 50),
-            pw.Divider(),
-            pw.Text('Generated on: ${DateTime.now()}'),
           ],
         ),
       ),
     );
+  }
 
-    await Printing.layoutPdf(onLayout: (PdfPageFormat format) async => pdf.save());
+  Widget _buildTab(String title, int index, IconData icon) {
+    final isSelected = _selectedTab == index;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => setState(() => _selectedTab = index),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            color: isSelected ? const Color(0xFF1B5E20) : Colors.transparent,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            children: [
+              Icon(icon, color: isSelected ? Colors.white : Colors.grey, size: 20),
+              const SizedBox(height: 4),
+              Text(
+                title,
+                style: TextStyle(
+                  color: isSelected ? Colors.white : Colors.grey,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatCard(String value, String label, IconData icon, Color iconColor) {
+    return AppCard(
+      color: Colors.white,
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: iconColor.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: iconColor, size: 20),
+          ),
+          const Spacer(),
+          Text(
+            value,
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(color: Colors.grey[600], fontSize: 13),
+          ),
+        ],
+      ),
+    );
   }
 }
-

@@ -48,14 +48,12 @@ class AppCard extends StatelessWidget {
 class MenuItemButton extends StatelessWidget {
   final String name;
   final double price;
-  final IconData? icon;
   final VoidCallback onTap;
 
   const MenuItemButton({
     super.key,
     required this.name,
     required this.price,
-    this.icon,
     required this.onTap,
   });
 
@@ -64,33 +62,37 @@ class MenuItemButton extends StatelessWidget {
     return AppCard(
       onTap: onTap,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+      borderRadius: 16,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            icon ?? Icons.restaurant_menu,
-            size: 32,
-            color: Theme.of(context).primaryColor,
-          ),
-          const SizedBox(height: 12),
           Text(
             name,
             textAlign: TextAlign.center,
             style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 15,
+              fontWeight: FontWeight.w900,
+              fontSize: 16,
+              color: Colors.black87,
             ),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 8),
           Text(
             'KES ${price.toStringAsFixed(0)}',
-            style: TextStyle(
-              color: Theme.of(context).primaryColor.withOpacity(0.7),
-              fontWeight: FontWeight.w600,
+            style: const TextStyle(
+              color: Colors.grey,
               fontSize: 14,
             ),
+          ),
+          const Spacer(),
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: const BoxDecoration(
+              color: Color(0xFF1B5E20), // Dark green
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.add, color: Colors.white, size: 24),
           ),
         ],
       ),

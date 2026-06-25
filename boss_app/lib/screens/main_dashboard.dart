@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-import 'dashboard_overview.dart';
-import 'logs_screen.dart';
-import 'login_screen.dart';
+import 'home_screen.dart';
+import 'businesses_screen.dart';
+import 'monitoring_screen.dart';
+import 'reports_screen.dart';
+import 'settings_screen.dart';
 
 class MainDashboard extends StatefulWidget {
   const MainDashboard({super.key});
@@ -13,93 +15,52 @@ class MainDashboard extends StatefulWidget {
 class _MainDashboardState extends State<MainDashboard> {
   int _selectedIndex = 0;
 
-  final List<Widget> _pages = [
-    const DashboardOverview(),
-    const Center(child: Text('Analytics (Coming Soon)')),
-    const LogsScreen(),
-    const Center(child: Text('System Health (Coming Soon)')),
-    const Center(child: Text('Personnel & Devices (Coming Soon)')),
-  ];
-
-  final List<NavigationRailDestination> _destinations = const [
-    NavigationRailDestination(
-      icon: Icon(Icons.dashboard_outlined),
-      selectedIcon: Icon(Icons.dashboard),
-      label: Text('Overview'),
-    ),
-    NavigationRailDestination(
-      icon: Icon(Icons.analytics_outlined),
-      selectedIcon: Icon(Icons.analytics),
-      label: Text('Analytics'),
-    ),
-    NavigationRailDestination(
-      icon: Icon(Icons.list_alt),
-      selectedIcon: Icon(Icons.list),
-      label: Text('Activity Logs'),
-    ),
-    NavigationRailDestination(
-      icon: Icon(Icons.monitor_heart_outlined),
-      selectedIcon: Icon(Icons.monitor_heart),
-      label: Text('System Health'),
-    ),
-    NavigationRailDestination(
-      icon: Icon(Icons.people_outline),
-      selectedIcon: Icon(Icons.people),
-      label: Text('Management'),
-    ),
+  final List<Widget> _screens = [
+    const HomeScreen(),
+    const BusinessesScreen(),
+    const MonitoringScreen(),
+    const BossReportsScreen(),
+    const SettingsScreen(),
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Row(
-        children: [
-          NavigationRail(
-            backgroundColor: Theme.of(context).colorScheme.surface,
-            selectedIndex: _selectedIndex,
-            onDestinationSelected: (int index) {
-              setState(() {
-                _selectedIndex = index;
-              });
-            },
-            labelType: NavigationRailLabelType.all,
-            destinations: _destinations,
-            leading: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 20),
-              child: Column(
-                children: [
-                  const Icon(Icons.security, size: 40, color: Color(0xFF6C63FF)),
-                  const SizedBox(height: 8),
-                  Text('BOSS', style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
-                ],
-              ),
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: _screens,
+      ),
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 16,
+              offset: const Offset(0, -4),
             ),
-            trailing: Expanded(
-              child: Align(
-                alignment: Alignment.bottomCenter,
-                child: Padding(
-                  padding: const EdgeInsets.only(bottom: 20.0),
-                  child: IconButton(
-                    icon: const Icon(Icons.logout, color: Colors.redAccent),
-                    onPressed: () {
-                      Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(builder: (_) => const LoginScreen()),
-                      );
-                    },
-                    tooltip: 'Logout',
-                  ),
-                ),
-              ),
-            ),
+          ],
+        ),
+        child: SafeArea(
+          child: BottomNavigationBar(
+            currentIndex: _selectedIndex,
+            onTap: (index) => setState(() => _selectedIndex = index),
+            type: BottomNavigationBarType.fixed,
+            backgroundColor: Colors.white,
+            selectedItemColor: const Color(0xFF1B5E20),
+            unselectedItemColor: Colors.grey,
+            selectedFontSize: 11,
+            unselectedFontSize: 11,
+            elevation: 0,
+            items: const [
+              BottomNavigationBarItem(icon: Icon(Icons.home_rounded), label: 'Home'),
+              BottomNavigationBarItem(icon: Icon(Icons.store_rounded), label: 'Businesses'),
+              BottomNavigationBarItem(icon: Icon(Icons.monitor_heart_rounded), label: 'Monitoring'),
+              BottomNavigationBarItem(icon: Icon(Icons.bar_chart_rounded), label: 'Reports'),
+              BottomNavigationBarItem(icon: Icon(Icons.settings_rounded), label: 'Settings'),
+            ],
           ),
-          const VerticalDivider(thickness: 1, width: 1, color: Colors.black26),
-          Expanded(
-            child: Container(
-              color: Theme.of(context).colorScheme.background,
-              child: _pages[_selectedIndex],
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

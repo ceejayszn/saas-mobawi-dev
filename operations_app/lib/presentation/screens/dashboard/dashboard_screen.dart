@@ -4,9 +4,11 @@ import '../../providers/report_provider.dart';
 import '../pos/pos_screen.dart';
 import '../menu/menu_screen.dart';
 import '../expenses/expenses_screen.dart';
-import '../reports/reports_screen.dart';
+import '../reports/reports_screen.dart'; // Used elsewhere if needed
 import '../inventory/inventory_screen.dart';
 import '../../widgets/custom_widgets.dart';
+import '../orders/orders_screen.dart';
+import '../cook/cook_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -21,9 +23,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   final List<Widget> _screens = [
     const _DashboardHome(),
     const POSScreen(),
-    const ReportsScreen(),
-    const InventoryScreen(),
-    const MenuScreen(),
+    const CookScreen(),
+    const ExpensesScreen(),
+    const OrdersScreen(),
   ];
 
   @override
@@ -61,11 +63,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
           showUnselectedLabels: true,
           elevation: 0,
           items: const [
-            BottomNavigationBarItem(icon: Icon(Icons.dashboard_rounded), label: 'Dashboard'),
-            BottomNavigationBarItem(icon: Icon(Icons.point_of_sale_rounded), label: 'POS'),
-            BottomNavigationBarItem(icon: Icon(Icons.bar_chart_rounded), label: 'Reports'),
-            BottomNavigationBarItem(icon: Icon(Icons.inventory_2_rounded), label: 'Stock'),
-            BottomNavigationBarItem(icon: Icon(Icons.restaurant_menu_rounded), label: 'Menu'),
+            BottomNavigationBarItem(icon: Icon(Icons.dashboard_rounded), label: 'Home'),
+            BottomNavigationBarItem(icon: Icon(Icons.touch_app_rounded), label: 'Sell'),
+            BottomNavigationBarItem(icon: Icon(Icons.restaurant_rounded), label: 'Cook'),
+            BottomNavigationBarItem(icon: Icon(Icons.receipt_long_rounded), label: 'Expenses'),
+            BottomNavigationBarItem(icon: Icon(Icons.delivery_dining_rounded), label: 'Orders'),
           ],
         ),
       ),
@@ -171,46 +173,26 @@ class _DashboardHomeState extends State<_DashboardHome> {
       children: [
         AppCard(
           onTap: () {
-            // This is handled by index stack in parent, but for now we fallback or navigate
-            Navigator.push(context, MaterialPageRoute(builder: (_) => const ExpensesScreen()));
+            Navigator.push(context, MaterialPageRoute(builder: (_) => const ReportsScreen()));
           },
           color: Colors.white,
           child: Row(
             children: [
               Container(
                 padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(color: Colors.red.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
-                child: const Icon(Icons.add_shopping_cart, color: Colors.red),
+                decoration: BoxDecoration(color: Colors.orange.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
+                child: const Icon(Icons.bolt, color: Colors.orange),
               ),
               const SizedBox(width: 16),
               const Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Add Expense', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                  Text('Log supplies or utility bills', style: TextStyle(color: Colors.grey, fontSize: 13)),
+                  Text('Boss Analytics', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  Text('View profits, expenses, and insights', style: TextStyle(color: Colors.grey, fontSize: 13)),
                 ],
               ),
               const Spacer(),
               const Icon(Icons.chevron_right, color: Colors.grey),
-            ],
-          ),
-        ),
-        const SizedBox(height: 12),
-        AppCard(
-          onTap: () {
-            // Logic to open POS from dashboard
-          },
-          color: Theme.of(context).primaryColor,
-          child: const Row(
-            children: [
-              Icon(Icons.flash_on, color: Colors.white),
-              SizedBox(width: 16),
-              Text(
-                'New Instant Sale',
-                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
-              ),
-              Spacer(),
-              Icon(Icons.chevron_right, color: Colors.white70),
             ],
           ),
         ),
