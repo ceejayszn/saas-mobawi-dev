@@ -62,7 +62,7 @@ class _POSScreenState extends State<POSScreen> {
                   border: Border(left: BorderSide(color: Colors.grey[200]!)),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.02),
+                      color: Colors.black.withValues(alpha: 0.02),
                       blurRadius: 10,
                       offset: const Offset(-5, 0),
                     ),
@@ -128,7 +128,7 @@ class _POSScreenState extends State<POSScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
-              color: Theme.of(context).primaryColor.withOpacity(0.1),
+              color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
@@ -199,11 +199,26 @@ class _POSScreenState extends State<POSScreen> {
             ],
           ),
           const SizedBox(height: 20),
-          PrimaryButton(
-            label: 'PROCESS PAYMENT',
-            onTap: order.cart.isEmpty ? null : () => _showPayDialog(context, order, allItems),
-            color: const Color(0xFF2E7D32),
-            icon: Icons.check_circle,
+          Row(
+            children: [
+              Expanded(
+                child: PrimaryButton(
+                  label: 'PROCESS PAYMENT',
+                  onTap: order.cart.isEmpty ? null : () => _showPayDialog(context, order, allItems),
+                  color: const Color(0xFF2E7D32),
+                  icon: Icons.check_circle,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: PrimaryButton(
+                  label: 'FREQUENT CUST',
+                  onTap: order.cart.isEmpty ? null : () => _showFrequentCustomerDialog(context, order, allItems),
+                  color: Colors.blueAccent,
+                  icon: Icons.people_rounded,
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 12),
           TextButton(
@@ -223,7 +238,7 @@ class _POSScreenState extends State<POSScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 10, offset: const Offset(0, -2))
+          BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 10, offset: const Offset(0, -2))
         ],
       ),
       child: Row(
@@ -307,34 +322,43 @@ class _POSScreenState extends State<POSScreen> {
   Widget _paymentOption(BuildContext context, OrderProvider order, String type, IconData icon, Color color, List<MenuItem> allItems) {
     return InkWell(
       onTap: () async {
-        final success = await order.processOrder(type, allItems);
+        String finalMethod = type;
+        if (type == 'M-Pesa') {
+          final receipt = await _promptForReceipt(context);
+          if (receipt == null) return; // Cancelled
+          finalMethod = 'M-Pesa (Receipt: $receipt)';
+        }
+
+        final success = await order.processOrder(finalMethod, allItems);
         if (success) {
-          context.read<ReportProvider>().refreshReports();
+          if (context.mounted) context.read<ReportProvider>().refreshReports();
           final total = order.calculateTotal(allItems);
-          final receipt = "EUTON HOTEL RECEIPT\n------------------\nMethod: $type\nDate: ${DateTime.now()}\nTotal: KES $total\nThank you!";
+          final receiptText = "EUTON HOTEL RECEIPT\n------------------\nMethod: $finalMethod\nDate: ${DateTime.now()}\nTotal: KES $total\nThank you!";
           
-          Navigator.pop(context); // Close dialog
-          if (ModalRoute.of(context)?.settings.name != '/') {
+          if (context.mounted) Navigator.pop(context); // Close dialog
+          if (context.mounted && ModalRoute.of(context)?.settings.name != '/') {
              // If we opened this from bottom sheet, we might need to pop again
           }
           
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              behavior: SnackBarBehavior.floating,
-              backgroundColor: Colors.green,
-              content: Text('Order Successfully Paid via $type!'),
-            ),
-          );
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                behavior: SnackBarBehavior.floating,
+                backgroundColor: Colors.green,
+                content: Text('Order Successfully Paid via $type!'),
+              ),
+            );
+          }
           
-          Share.share(receipt);
+          Share.share(receiptText);
         }
       },
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
+          color: color.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: color.withOpacity(0.3)),
+          border: Border.all(color: color.withValues(alpha: 0.3)),
         ),
         child: Column(
           children: [
@@ -343,6 +367,92 @@ class _POSScreenState extends State<POSScreen> {
             Text(type, style: TextStyle(fontWeight: FontWeight.bold, color: color)),
           ],
         ),
+      ),
+    );
+  }
+
+  Future<String?> _promptForReceipt(BuildContext context) async {
+    final ctrl = TextEditingController();
+    return showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('M-Pesa Receipt'),
+        content: TextField(
+          controller: ctrl,
+          decoration: const InputDecoration(
+            hintText: 'Enter receipt number',
+            border: OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, null), child: const Text('Cancel')),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, ctrl.text.trim()),
+            child: const Text('Confirm'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showFrequentCustomerDialog(BuildContext context, OrderProvider order, List<MenuItem> allItems) {
+    final nameCtrl = TextEditingController();
+    final officeCtrl = TextEditingController();
+    final phoneCtrl = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Frequent Customer Details'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: 'Customer Name', prefixIcon: Icon(Icons.person))),
+              const SizedBox(height: 12),
+              TextField(controller: officeCtrl, decoration: const InputDecoration(labelText: 'Office Name / Address', prefixIcon: Icon(Icons.business))),
+              const SizedBox(height: 12),
+              TextField(controller: phoneCtrl, decoration: const InputDecoration(labelText: 'Phone Number', prefixIcon: Icon(Icons.phone))),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          ElevatedButton(
+            onPressed: () async {
+              if (nameCtrl.text.isEmpty) return;
+              
+              // We simulate addToOutsideCart for all cart items since Frequent Customer goes through Outside Orders logic
+              order.clearOutsideCart();
+              order.cart.forEach((itemId, qty) {
+                final item = allItems.firstWhere((i) => i.id == itemId);
+                for (int i = 0; i < qty; i++) {
+                  order.addToOutsideCart(item);
+                }
+              });
+
+              final locStr = '${officeCtrl.text.trim()} | ${phoneCtrl.text.trim()}';
+              final success = await order.createOutsideOrder(
+                customerName: nameCtrl.text.trim(),
+                location: locStr,
+                allItems: allItems,
+              );
+              
+              if (success) {
+                order.clearCart();
+                if (ctx.mounted) {
+                  Navigator.pop(ctx);
+                  if (Navigator.canPop(context)) Navigator.pop(context); // close bottom sheet if open
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Sent to Kitchen for Frequent Customer'), backgroundColor: Colors.blue),
+                  );
+                }
+              }
+            },
+            child: const Text('Send to Kitchen'),
+          ),
+        ],
       ),
     );
   }

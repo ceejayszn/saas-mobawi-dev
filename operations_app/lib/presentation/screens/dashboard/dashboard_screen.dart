@@ -2,10 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/report_provider.dart';
 import '../pos/pos_screen.dart';
-import '../menu/menu_screen.dart';
 import '../expenses/expenses_screen.dart';
-import '../reports/reports_screen.dart'; // Used elsewhere if needed
-import '../inventory/inventory_screen.dart';
 import '../../widgets/custom_widgets.dart';
 import '../orders/orders_screen.dart';
 import '../cook/cook_screen.dart';
@@ -39,7 +36,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         decoration: BoxDecoration(
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black.withValues(alpha: 0.1),
               blurRadius: 20,
               offset: const Offset(0, -5),
             ),
@@ -49,7 +46,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           currentIndex: _selectedIndex,
           onTap: (index) {
             setState(() => _selectedIndex = index);
-            if (index == 0 || index == 2) {
+            if (index == 0) {
               context.read<ReportProvider>().refreshReports();
             }
           },
@@ -91,6 +88,66 @@ class _DashboardHomeState extends State<_DashboardHome> {
     });
   }
 
+  void _showExpensesModal(BuildContext context, ReportProvider report) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: const Text(
+            'Expenses Breakdown',
+            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+          ),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: report.expenses.isEmpty
+                ? const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 24.0),
+                    child: Center(
+                      child: Text(
+                        'No expenses recorded today',
+                        style: TextStyle(color: Colors.grey, fontSize: 15),
+                      ),
+                    ),
+                  )
+                : ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: report.expenses.length,
+                    itemBuilder: (context, index) {
+                      final item = report.expenses[index];
+                      return ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        leading: const CircleAvatar(
+                          backgroundColor: Color(0xFFFEE2E2),
+                          child: Icon(Icons.money_off_rounded, color: Colors.red, size: 20),
+                        ),
+                        title: Text(
+                          item.title,
+                          style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+                        ),
+                        subtitle: Text(
+                          'Account: ${item.accountName}',
+                          style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                        ),
+                        trailing: Text(
+                          'KES ${item.amount.toStringAsFixed(0)}',
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.red),
+                        ),
+                      );
+                    },
+                  ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('CLOSE', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF2E7D32))),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -116,16 +173,16 @@ class _DashboardHomeState extends State<_DashboardHome> {
               children: [
                 const Text(
                   'Quick Overview',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
                 ),
                 const SizedBox(height: 16),
                 GridView.count(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  crossAxisCount: 2,
-                  childAspectRatio: 1.1,
-                  mainAxisSpacing: 16,
-                  crossAxisSpacing: 16,
+                  crossAxisCount: 3, // Reduced card size
+                  childAspectRatio: 1.15,
+                  mainAxisSpacing: 10,
+                  crossAxisSpacing: 10,
                   children: [
                     SummaryCard(
                       label: 'Total Sales',
@@ -140,26 +197,35 @@ class _DashboardHomeState extends State<_DashboardHome> {
                       color: Colors.blue,
                     ),
                     SummaryCard(
-                      label: 'Expenses',
-                      value: 'KES ${report.totalExpenses.toStringAsFixed(0)}',
-                      icon: Icons.money_off_rounded,
-                      color: Colors.red,
+                      label: 'Deliveries',
+                      value: 'KES ${report.deliveryRevenue.toStringAsFixed(0)}',
+                      icon: Icons.delivery_dining_rounded,
+                      color: Colors.purple,
                     ),
                     SummaryCard(
-                      label: 'Net Profit',
-                      value: 'KES ${report.netProfit.toStringAsFixed(0)}',
-                      icon: Icons.trending_up_rounded,
-                      color: Colors.orange,
+                      label: 'Cash on Hand',
+                      value: 'KES ${report.cashOnHand.toStringAsFixed(0)}',
+                      icon: Icons.money_rounded,
+                      color: Colors.teal,
+                    ),
+                    SummaryCard(
+                      label: 'M-Pesa Amount',
+                      value: 'KES ${report.mpesaIncome.toStringAsFixed(0)}',
+                      icon: Icons.phone_android_rounded,
+                      color: Colors.indigo,
+                    ),
+                    GestureDetector(
+                      onTap: () => _showExpensesModal(context, report),
+                      child: SummaryCard(
+                        label: 'Expenses (Tap)',
+                        value: 'KES ${report.totalExpenses.toStringAsFixed(0)}',
+                        icon: Icons.money_off_rounded,
+                        color: Colors.red,
+                      ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 24),
-                const Text(
-                  'Quick Actions',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 16),
-                _buildActionButtons(context),
+                const SizedBox(height: 20),
               ],
             ),
           );
@@ -168,36 +234,5 @@ class _DashboardHomeState extends State<_DashboardHome> {
     );
   }
 
-  Widget _buildActionButtons(BuildContext context) {
-    return Column(
-      children: [
-        AppCard(
-          onTap: () {
-            Navigator.push(context, MaterialPageRoute(builder: (_) => const ReportsScreen()));
-          },
-          color: Colors.white,
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(color: Colors.orange.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
-                child: const Icon(Icons.bolt, color: Colors.orange),
-              ),
-              const SizedBox(width: 16),
-              const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Boss Analytics', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                  Text('View profits, expenses, and insights', style: TextStyle(color: Colors.grey, fontSize: 13)),
-                ],
-              ),
-              const Spacer(),
-              const Icon(Icons.chevron_right, color: Colors.grey),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-}
 
+}

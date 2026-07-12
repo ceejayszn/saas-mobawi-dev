@@ -70,7 +70,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
                         Container(
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
-                            color: isLow ? Colors.orange.withOpacity(0.1) : Colors.green.withOpacity(0.1),
+                            color: isLow ? Colors.orange.withValues(alpha: 0.1) : Colors.green.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Icon(

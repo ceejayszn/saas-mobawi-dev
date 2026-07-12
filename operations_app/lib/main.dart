@@ -9,17 +9,59 @@ import 'presentation/providers/order_provider.dart';
 import 'presentation/providers/report_provider.dart';
 import 'presentation/screens/splash/splash_screen.dart';
 
+import 'data/repositories/i_expense_repository.dart';
+import 'data/repositories/local_expense_repository.dart';
+import 'data/repositories/api_expense_repository.dart';
+import 'data/repositories/i_menu_repository.dart';
+import 'data/repositories/local_menu_repository.dart';
+import 'data/repositories/api_menu_repository.dart';
+import 'data/repositories/i_order_repository.dart';
+import 'data/repositories/local_order_repository.dart';
+import 'data/repositories/api_order_repository.dart';
+import 'data/repositories/i_report_repository.dart';
+import 'data/repositories/local_report_repository.dart';
+import 'data/repositories/api_report_repository.dart';
+
+const bool useCloudBackend = false;
+
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   runApp(
     MultiProvider(
       providers: [
+        // ── Repository Layer (Dependency Injection) ──
+        Provider<IExpenseRepository>(
+          create: (_) => useCloudBackend ? ApiExpenseRepository() : LocalExpenseRepository(),
+        ),
+        Provider<IMenuRepository>(
+          create: (_) => useCloudBackend ? ApiMenuRepository() : LocalMenuRepository(),
+        ),
+        Provider<IOrderRepository>(
+          create: (_) => useCloudBackend ? ApiOrderRepository() : LocalOrderRepository(),
+        ),
+        Provider<IReportRepository>(
+          create: (_) => useCloudBackend ? ApiReportRepository() : LocalReportRepository(),
+        ),
+
+        // ── State Layer (Providers) ──
         ChangeNotifierProvider(create: (_) => AppProvider()),
-        ChangeNotifierProvider(create: (_) => ExpenseProvider()),
+        ChangeNotifierProxyProvider<IExpenseRepository, ExpenseProvider>(
+          create: (context) => ExpenseProvider(context.read<IExpenseRepository>()),
+          update: (_, repo, prev) => prev ?? ExpenseProvider(repo),
+        ),
         ChangeNotifierProvider(create: (_) => InventoryProvider()),
-        ChangeNotifierProvider(create: (_) => MenuProvider()),
-        ChangeNotifierProvider(create: (_) => OrderProvider()),
-        ChangeNotifierProvider(create: (_) => ReportProvider()),
+        ChangeNotifierProxyProvider<IMenuRepository, MenuProvider>(
+          create: (context) => MenuProvider(context.read<IMenuRepository>()),
+          update: (_, repo, prev) => prev ?? MenuProvider(repo),
+        ),
+        ChangeNotifierProxyProvider<IOrderRepository, OrderProvider>(
+          create: (context) => OrderProvider(context.read<IOrderRepository>()),
+          update: (_, repo, prev) => prev ?? OrderProvider(repo),
+        ),
+        ChangeNotifierProxyProvider<IReportRepository, ReportProvider>(
+          create: (context) => ReportProvider(context.read<IReportRepository>()),
+          update: (_, repo, prev) => prev ?? ReportProvider(repo),
+        ),
       ],
       child: const OperationsApp(),
     ),

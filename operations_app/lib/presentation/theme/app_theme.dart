@@ -12,11 +12,12 @@ class AppTheme {
         surface: AppColors.surfaceWhite,
       ),
       appBarTheme: const AppBarTheme(
-        backgroundColor: AppColors.surfaceWhite,
-        foregroundColor: AppColors.primaryGreen,
-        elevation: 0,
+        backgroundColor: AppColors.primaryGreen, // Colored headers (solid green)
+        foregroundColor: Colors.white,
+        elevation: 2,
         centerTitle: true,
-        iconTheme: IconThemeData(color: AppColors.primaryGreen),
+        iconTheme: IconThemeData(color: Colors.white),
+        titleTextStyle: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20),
       ),
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         backgroundColor: AppColors.surfaceWhite,
@@ -26,7 +27,7 @@ class AppTheme {
         elevation: 8,
       ),
       textTheme: const TextTheme(
-        headlineSmall: TextStyle(color: AppColors.primaryGreen, fontWeight: FontWeight.bold),
+        headlineSmall: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
         titleLarge: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
         bodyLarge: TextStyle(color: AppColors.textPrimary),
         bodyMedium: TextStyle(color: AppColors.textSecondary),

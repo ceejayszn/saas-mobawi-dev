@@ -2,6 +2,7 @@ export 'expense.dart';
 export 'menu_item.dart';
 export 'order.dart';
 export 'order_item.dart';
+export 'outside_order.dart';
 
 class InventoryItem {
   final int? id;
