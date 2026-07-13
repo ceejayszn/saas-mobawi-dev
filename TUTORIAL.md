@@ -60,27 +60,25 @@ Render will host your Node.js backend. Render reads your repository, builds a Do
 8. Click **Apply** or **Create Service**.
 9. Render will take 2–3 minutes to build and launch your server. Once the logs say **"Live"** with a green badge, look at the top left of the dashboard. Copy your **Public URL** (it looks like `https://mobawi-backend-api.onrender.com`).
 
----
+## STEP 3 — Host the Admin Web Hub (GitHub Pages)
 
-## STEP 3 — Deploy the Admin Web Hub (Vercel.com)
+GitHub Actions will automatically compile your Dart code and publish the Admin Console web app to GitHub Pages.
 
-Vercel will host your Admin Web Hub (`mobawi_admin`) which lets you monitor all your tenant apps.
+1. **Activate Pages in GitHub Settings**:
+   * Go to your repository page on GitHub: `https://github.com/ceejayszn/saas-mobawi-dev`
+   * Click the **Settings** tab at the top.
+   * Click **Pages** on the left menu bar.
+   * Under **Build and deployment** -> **Source**, make sure **"Deploy from a branch"** is selected.
+   * Under **Branch**, select **`gh-pages`** and the `/ (root)` folder (Note: the `gh-pages` branch will appear automatically after the first push finishes building).
+   * Click **Save**.
 
-1. Go to: **[https://vercel.com](https://vercel.com)**
-2. Click **Sign Up** and choose **GitHub** (it is best if your database, backend, and frontend are all linked via the same GitHub login).
-3. Once inside Vercel's dashboard, click **Add New** -> **Project**.
-4. In the list of GitHub repositories, find `ceejayszn/saas-mobawi-dev` and click **Import**.
-5. Under the **Configure Project** settings, find the **Root Directory** field.
-6. Click **Edit** or click the folder search icon, and select:
-   ```text
-   mobawi_admin
-   ```
-   *(This tells Vercel that your web project lives inside the `mobawi_admin` subfolder).*
-7. For the **Framework Preset**, select **Flutter** (or Vercel will auto-detect it based on your `pubspec.yaml`).
-8. Under **Environment Variables**, add:
-   * **Name**: `NEXUS_API_URL`
-   * **Value**: *(Paste your Render Public URL, e.g., `https://mobawi-backend-api.onrender.com`)*
-9. Click **Deploy**. Vercel will build your web app and publish it live!
+2. **Your Admin URL**:
+   * Your live Admin Console will be hosted at:
+     ```text
+     https://ceejayszn.github.io/saas-mobawi-dev/
+     ```
+   * You can watch the build progress under the **Actions** tab on your GitHub repository.
+
 
 ---
 
@@ -95,4 +93,4 @@ Because everything is configured as a Monorepo, updating the live servers is ext
    git commit -m "Describe what changes you made"
    git push origin main
    ```
-3. That is it! Render and Vercel will instantly see the new code and redeploy the live backend and frontend websites automatically within a few minutes.
+3. That is it! Render and GitHub Actions (GitHub Pages) will instantly see the new code and redeploy the live backend and web console automatically within a few minutes.
