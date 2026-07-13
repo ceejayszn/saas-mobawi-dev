@@ -17,8 +17,8 @@ class AppProvider with ChangeNotifier {
   List<InventoryItem> get inventory => _inventory;
 
   // Current order state (POS)
-  final Map<int, int> _cart = {}; // itemId -> quantity
-  Map<int, int> get cart => _cart;
+  final Map<String, int> _cart = {}; // itemId -> quantity
+  Map<String, int> get cart => _cart;
 
   AppProvider() {
     loadAll();
@@ -98,7 +98,7 @@ class AppProvider with ChangeNotifier {
     _cart.forEach((itemId, qty) {
       final item = _menuItems.firstWhere((element) => element.id == itemId);
       orderItems.add(OrderItem(
-        orderId: 0, // Placeholder
+        orderId: '', // Placeholder
         itemId: itemId,
         itemName: item.name,
         quantity: qty,
@@ -114,8 +114,25 @@ class AppProvider with ChangeNotifier {
     );
 
     await _db.insertOrder(order, orderItems);
+
+    // Auto-deduct inventory stocks for matching items
+    for (var orderItem in orderItems) {
+      try {
+        final matchingInventory = _inventory.firstWhere(
+          (inv) => inv.itemName.toLowerCase() == orderItem.itemName.toLowerCase()
+        );
+        if (matchingInventory.id != null) {
+          final newQty = (matchingInventory.quantity - orderItem.quantity).clamp(0.0, double.infinity);
+          await _db.update('inventory', {'quantity': newQty}, matchingInventory.id!);
+        }
+      } catch (_) {
+        // No matching item in inventory to deduct, ignore silently or log
+      }
+    }
+
     clearCart();
     await loadOrders();
+    await loadInventory();
   }
 
   // Management Actions
@@ -134,6 +151,4 @@ class AppProvider with ChangeNotifier {
     await _db.insert('expenses', Expense(title: title, amount: amount, date: DateTime.now()).toMap());
     await loadExpenses();
   }
-
-  // Simple inventory deduction can be added here
 }

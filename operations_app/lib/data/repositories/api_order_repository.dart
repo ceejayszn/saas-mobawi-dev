@@ -5,7 +5,7 @@ import 'i_order_repository.dart';
 
 class ApiOrderRepository implements IOrderRepository {
   @override
-  Future<int> createOrder(Order order, List<OrderItem> items) {
+  Future<String> createOrder(Order order, List<OrderItem> items) {
     throw UnimplementedError('API implementation pending');
   }
 
@@ -20,7 +20,7 @@ class ApiOrderRepository implements IOrderRepository {
   }
 
   @override
-  Future<int> createOutsideOrder(OutsideOrder order, List<OrderItem> items) {
+  Future<String> createOutsideOrder(OutsideOrder order, List<OrderItem> items) {
     throw UnimplementedError('API implementation pending');
   }
 
@@ -35,12 +35,12 @@ class ApiOrderRepository implements IOrderRepository {
   }
 
   @override
-  Future<void> markOutsideOrderPaid(int orderId, {String paymentMethod = 'Cash'}) {
+  Future<void> markOutsideOrderPaid(String orderId, {String paymentMethod = 'Cash'}) {
     throw UnimplementedError('API implementation pending');
   }
 
   @override
-  Future<void> updateOutsideOrderStatus(int orderId, String status) {
+  Future<void> updateOutsideOrderStatus(String orderId, String status) {
     throw UnimplementedError('API implementation pending');
   }
 

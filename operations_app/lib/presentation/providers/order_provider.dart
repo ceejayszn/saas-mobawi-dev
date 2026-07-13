@@ -9,17 +9,17 @@ import '../../data/repositories/i_order_repository.dart';
 class OrderProvider with ChangeNotifier {
   final IOrderRepository _repository;
 
-  final Map<int, int> _cart = {}; // itemId -> quantity
+  final Map<String, int> _cart = {}; // itemId -> quantity
   final List<Order> _recentOrders = [];
-  final Map<int, int> _outsideCart = {};
+  final Map<String, int> _outsideCart = {};
   List<OutsideOrder> _pendingOutsideOrders = [];
   List<OutsideOrder> _readyOutsideOrders = [];
   List<OutsideOrder> _deliveringOutsideOrders = [];
   List<OutsideOrder> _paidOutsideOrders = [];
 
-  Map<int, int> get cart => _cart;
+  Map<String, int> get cart => _cart;
   List<Order> get recentOrders => _recentOrders;
-  Map<int, int> get outsideCart => _outsideCart;
+  Map<String, int> get outsideCart => _outsideCart;
   List<OutsideOrder> get pendingOutsideOrders => _pendingOutsideOrders;
   List<OutsideOrder> get readyOutsideOrders => _readyOutsideOrders;
   List<OutsideOrder> get deliveringOutsideOrders => _deliveringOutsideOrders;
@@ -116,7 +116,7 @@ class OrderProvider with ChangeNotifier {
     _cart.forEach((itemId, qty) {
       final item = allItems.firstWhere((i) => i.id == itemId);
       items.add(OrderItem(
-        orderId: 0,
+        orderId: '',
         itemId: itemId,
         itemName: item.name,
         quantity: qty,
@@ -173,7 +173,7 @@ class OrderProvider with ChangeNotifier {
       final item = allItems.firstWhere((menuItem) => menuItem.id == itemId);
       items.add(
         OrderItem(
-          orderId: 0,
+          orderId: '',
           itemId: itemId,
           itemName: item.name,
           quantity: qty,
@@ -195,7 +195,7 @@ class OrderProvider with ChangeNotifier {
     return true;
   }
 
-  Future<void> markOutsideOrderPaid(int orderId, {String paymentMethod = 'Cash'}) async {
+  Future<void> markOutsideOrderPaid(String orderId, {String paymentMethod = 'Cash'}) async {
     await _repository.markOutsideOrderPaid(orderId, paymentMethod: paymentMethod);
     
     final order = _pendingOutsideOrders.firstWhere((o) => o.id == orderId, orElse: () => _readyOutsideOrders.firstWhere((o) => o.id == orderId));
@@ -208,12 +208,12 @@ class OrderProvider with ChangeNotifier {
     await loadOutsideOrders();
   }
 
-  Future<void> markOutsideOrderDelivering(int orderId) async {
+  Future<void> markOutsideOrderDelivering(String orderId) async {
     await _repository.updateOutsideOrderStatus(orderId, 'Delivering');
     await loadOutsideOrders();
   }
 
-  Future<void> updateOutsideOrderStatus(int orderId, String status) async {
+  Future<void> updateOutsideOrderStatus(String orderId, String status) async {
     await _repository.updateOutsideOrderStatus(orderId, status);
     await loadOutsideOrders();
   }

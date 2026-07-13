@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../dashboard/dashboard_screen.dart';
+import '../auth/login_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -31,10 +31,11 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
     _controller.forward();
 
+    // Navigate to login screen (authentication gate) instead of dashboard
     Future.delayed(const Duration(seconds: 3), () {
       if (mounted) {
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const DashboardScreen()),
+          MaterialPageRoute(builder: (context) => const LoginScreen()),
         );
       }
     });

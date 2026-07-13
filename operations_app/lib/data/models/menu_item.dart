@@ -1,5 +1,5 @@
 class MenuItem {
-  final int? id;
+  final String? id;
   final String name;
   final double price;
   final bool isActive;
@@ -17,7 +17,7 @@ class MenuItem {
 
   factory MenuItem.fromMap(Map<String, dynamic> map) {
     return MenuItem(
-      id: map['id'],
+      id: map['id']?.toString(),
       name: map['name'],
       price: map['price'],
       isActive: map['is_active'] == 1,

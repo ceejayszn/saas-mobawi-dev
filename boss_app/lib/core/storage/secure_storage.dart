@@ -1,85 +1,64 @@
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-/// Secure local storage wrapper around SharedPreferences.
-/// Provides a consistent API for reading/writing sensitive app data.
-/// Values are stored with a simple obfuscation layer.
-/// Future upgrade path: replace with flutter_secure_storage for keychain/keystore.
+/// Secure local storage using platform-native encryption.
+/// - Android: AES-256 via Android Keystore
+/// - iOS: Keychain Services
+/// - Windows: Windows Credential Manager (via DPAPI)
+/// - Linux: libsecret
+/// - macOS: Keychain
+///
+/// All string values are encrypted at rest.
+/// Non-string values (bool, int) are stored as encrypted strings.
 class SecureStorage {
   SecureStorage._();
 
-  static SharedPreferences? _prefs;
-
-  static Future<SharedPreferences> get _instance async {
-    _prefs ??= await SharedPreferences.getInstance();
-    return _prefs!;
-  }
-
-  // ── Basic obfuscation ─────────────────────────────────────────────────────
-  // XOR with a fixed key for basic obfuscation. Not cryptographic — intended
-  // only as a deterrence layer against casual plaintext reads of the prefs file.
-  // Sensitive data like password hashes are ALSO protected by their own crypto.
-  static const int _obfKey = 0x4D; // 'M' for MOBAWI
-
-  static String _obfuscate(String input) {
-    return input.codeUnits.map((c) => c ^ _obfKey).join(',');
-  }
-
-  static String _deobfuscate(String input) {
-    try {
-      final parts = input.split(',');
-      return String.fromCharCodes(parts.map((p) => int.parse(p) ^ _obfKey));
-    } catch (_) {
-      return input; // Return raw if deobfuscation fails (legacy data)
-    }
-  }
+  static const FlutterSecureStorage _storage = FlutterSecureStorage(
+    aOptions: AndroidOptions(
+      encryptedSharedPreferences: true,
+    ),
+  );
 
   // ── String ────────────────────────────────────────────────────────────────
 
   static Future<void> saveString(String key, String value) async {
-    final prefs = await _instance;
-    await prefs.setString(key, _obfuscate(value));
+    await _storage.write(key: key, value: value);
   }
 
   static Future<String?> getString(String key) async {
-    final prefs = await _instance;
-    final raw = prefs.getString(key);
-    if (raw == null) return null;
-    return _deobfuscate(raw);
+    return await _storage.read(key: key);
   }
 
   // ── Bool ──────────────────────────────────────────────────────────────────
 
   static Future<void> saveBool(String key, bool value) async {
-    final prefs = await _instance;
-    await prefs.setBool(key, value);
+    await _storage.write(key: key, value: value.toString());
   }
 
   static Future<bool> getBool(String key, {bool defaultValue = false}) async {
-    final prefs = await _instance;
-    return prefs.getBool(key) ?? defaultValue;
+    final raw = await _storage.read(key: key);
+    if (raw == null) return defaultValue;
+    return raw == 'true';
   }
 
   // ── Int ───────────────────────────────────────────────────────────────────
 
   static Future<void> saveInt(String key, int value) async {
-    final prefs = await _instance;
-    await prefs.setInt(key, value);
+    await _storage.write(key: key, value: value.toString());
   }
 
   static Future<int> getInt(String key, {int defaultValue = 0}) async {
-    final prefs = await _instance;
-    return prefs.getInt(key) ?? defaultValue;
+    final raw = await _storage.read(key: key);
+    if (raw == null) return defaultValue;
+    return int.tryParse(raw) ?? defaultValue;
   }
 
   // ── Clear ─────────────────────────────────────────────────────────────────
 
   static Future<void> remove(String key) async {
-    final prefs = await _instance;
-    await prefs.remove(key);
+    await _storage.delete(key: key);
   }
 
   static Future<void> clearAll() async {
-    final prefs = await _instance;
-    await prefs.clear();
+    await _storage.deleteAll();
   }
 }

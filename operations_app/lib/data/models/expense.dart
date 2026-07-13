@@ -1,5 +1,5 @@
 class Expense {
-  final int? id;
+  final String? id;
   final String title;
   final double amount;
   final DateTime date;
@@ -28,7 +28,7 @@ class Expense {
 
   factory Expense.fromMap(Map<String, dynamic> map) {
     return Expense(
-      id: map['id'],
+      id: map['id']?.toString(),
       title: map['title'] ?? '',
       amount: ((map['amount'] ?? 0) as num).toDouble(),
       date: DateTime.parse(map['date'] ?? DateTime.now().toIso8601String()),

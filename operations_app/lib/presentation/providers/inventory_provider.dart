@@ -20,7 +20,7 @@ class InventoryProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> updateStock(int id, double newQuantity) async {
+  Future<void> updateStock(String id, double newQuantity) async {
     await DatabaseHelper.instance.update('inventory', {'quantity': newQuantity}, id);
     await loadInventory();
   }

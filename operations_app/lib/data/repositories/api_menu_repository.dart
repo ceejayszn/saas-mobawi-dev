@@ -3,7 +3,7 @@ import 'i_menu_repository.dart';
 
 class ApiMenuRepository implements IMenuRepository {
   @override
-  Future<int> insertMenuItem(MenuItem item) {
+  Future<String> insertMenuItem(MenuItem item) {
     throw UnimplementedError('API implementation pending');
   }
 

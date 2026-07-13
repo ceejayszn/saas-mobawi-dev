@@ -21,11 +21,13 @@ import 'data/repositories/api_order_repository.dart';
 import 'data/repositories/i_report_repository.dart';
 import 'data/repositories/local_report_repository.dart';
 import 'data/repositories/api_report_repository.dart';
+import 'data/services/sync_service.dart';
 
 const bool useCloudBackend = false;
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+  SyncService.instance.initialize();
   runApp(
     MultiProvider(
       providers: [

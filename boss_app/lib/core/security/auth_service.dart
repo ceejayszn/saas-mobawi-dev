@@ -36,16 +36,41 @@ class AuthService {
   bool _isInitialized = false;
 
   /// Initialize the auth service. Call once at app startup.
-  /// Auto-creates a hashed default password if none exists.
+  /// If no password exists, marks as needing first-run setup.
   Future<void> initialize() async {
     if (_isInitialized) return;
     _isInitialized = true;
 
     final existingHash = await SecureStorage.getString(AppConstants.keyPasswordHash);
     if (existingHash == null || existingHash.isEmpty) {
-      // First run — hash the default PIN and store it
-      await _setPasswordInternal(AppConstants.defaultAdminPin, isPrimary: true);
+      // First run — if a default PIN is configured, hash it.
+      // Otherwise, the app must present a first-run PIN setup screen.
+      if (AppConstants.defaultAdminPin.isNotEmpty) {
+        await _setPasswordInternal(AppConstants.defaultAdminPin, isPrimary: true);
+      }
+      // When defaultAdminPin is empty, isFirstRun will return true.
     }
+  }
+
+  /// Returns true if the user has never set a PIN (first-run state).
+  Future<bool> isFirstRun() async {
+    final existingHash = await SecureStorage.getString(AppConstants.keyPasswordHash);
+    return existingHash == null || existingHash.isEmpty;
+  }
+
+  /// Sets the initial PIN during first-run setup. Returns null on success.
+  Future<String?> createInitialPin({
+    required String newPin,
+    required String confirmPin,
+  }) async {
+    if (newPin.length < AppConstants.minPinLength) {
+      return 'PIN must be at least ${AppConstants.minPinLength} digits.';
+    }
+    if (newPin != confirmPin) {
+      return 'PINs do not match.';
+    }
+    await _setPasswordInternal(newPin, isPrimary: true);
+    return null; // Success
   }
 
   // ── Login ────────────────────────────────────────────────────────────────

@@ -3,7 +3,7 @@ import 'i_expense_repository.dart';
 
 class ApiExpenseRepository implements IExpenseRepository {
   @override
-  Future<int> insertExpense(Expense expense) {
+  Future<String> insertExpense(Expense expense) {
     throw UnimplementedError('API implementation pending');
   }
 

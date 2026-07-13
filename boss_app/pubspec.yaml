@@ -2,7 +2,7 @@ name: boss_app
 description: "Euton Hotel Admin POS Service"
 publish_to: 'none'
 
-version: 2.0.0+1
+version: 2.1.0+2
 
 environment:
   sdk: ^3.11.3
@@ -20,6 +20,7 @@ dependencies:
 
   # Local storage
   shared_preferences: ^2.3.3
+  flutter_secure_storage: ^9.2.4
 
   # Hashing / security
   crypto: ^3.0.5

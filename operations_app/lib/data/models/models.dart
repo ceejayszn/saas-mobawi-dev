@@ -3,9 +3,10 @@ export 'menu_item.dart';
 export 'order.dart';
 export 'order_item.dart';
 export 'outside_order.dart';
+export 'sync_item.dart';
 
 class InventoryItem {
-  final int? id;
+  final String? id;
   final String itemName;
   final double quantity;
 
@@ -21,7 +22,7 @@ class InventoryItem {
 
   factory InventoryItem.fromMap(Map<String, dynamic> map) {
     return InventoryItem(
-      id: map['id'],
+      id: map['id']?.toString(),
       itemName: map['item_name'],
       quantity: map['quantity'],
     );

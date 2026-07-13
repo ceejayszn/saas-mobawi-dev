@@ -1,5 +1,5 @@
 class OutsideOrder {
-  final int? id;
+  final String? id;
   final String customerName;
   final String location;
   final double total;
@@ -31,7 +31,7 @@ class OutsideOrder {
 
   factory OutsideOrder.fromMap(Map<String, dynamic> map) {
     return OutsideOrder(
-      id: map['id'] as int?,
+      id: map['id']?.toString(),
       customerName: (map['customer_name'] ?? '') as String,
       location: (map['location'] ?? '') as String,
       total: ((map['total'] ?? 0) as num).toDouble(),

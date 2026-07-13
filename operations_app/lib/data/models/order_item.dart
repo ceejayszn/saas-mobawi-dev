@@ -1,7 +1,7 @@
 class OrderItem {
-  final int? id;
-  final int orderId;
-  final int itemId;
+  final String? id;
+  final String orderId;
+  final String itemId;
   final String itemName;
   final int quantity;
   final double price;
@@ -21,9 +21,9 @@ class OrderItem {
 
   factory OrderItem.fromMap(Map<String, dynamic> map) {
     return OrderItem(
-      id: map['id'],
-      orderId: map['order_id'],
-      itemId: map['item_id'],
+      id: map['id']?.toString(),
+      orderId: map['order_id'].toString(),
+      itemId: map['item_id'].toString(),
       itemName: map['item_name'] ?? 'Unknown',
       quantity: map['quantity'],
       price: map['price'],

@@ -4,7 +4,7 @@ import 'i_menu_repository.dart';
 
 class LocalMenuRepository implements IMenuRepository {
   @override
-  Future<int> insertMenuItem(MenuItem item) async {
+  Future<String> insertMenuItem(MenuItem item) async {
     return await DatabaseHelper.instance.insertMenuItem(item);
   }
 

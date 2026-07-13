@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: mobawi-backend-api
+    runtime: docker
+    plan: free
+    rootDirectory: backend_api
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+        description: "PostgreSQL Database URL (e.g. Neon.tech connection string)"
+      - key: PORT
+        value: 3000
+      - key: JWT_SECRET
+        sync: false
+        description: "Secure JWT signature secret key"
+

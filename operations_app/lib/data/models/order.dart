@@ -1,5 +1,5 @@
 class Order {
-  final int? id;
+  final String? id;
   final double total;
   final String status;
   final String paymentMethod;
@@ -19,7 +19,7 @@ class Order {
 
   factory Order.fromMap(Map<String, dynamic> map) {
     return Order(
-      id: map['id'],
+      id: map['id']?.toString(),
       total: map['total'],
       status: map['status'],
       paymentMethod: map['payment_method'],

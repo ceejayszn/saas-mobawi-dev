@@ -74,7 +74,7 @@ MOBAWI LLC – cheruyotcollo@gmail.com – 0718901990
 Frequently Asked Questions – Euton Hotel Admin POS
 
 Q: What is the default admin PIN?
-A: The default PIN is 8890. Change it immediately from Settings → Security.
+A: You set your own PIN during first-time setup. If you need to reset it, use the "Forgot PIN?" option on the login screen.
 
 Q: I forgot my PIN. What do I do?
 A: Go to the login screen and use "Forgot PIN?" to answer your security questions and reset your PIN.
@@ -195,8 +195,9 @@ https://pub.dev/packages/printing
   static const int maxInputLength = 200;
   static const int maxBusinessNameLength = 100;
 
-  // Default admin password (will be hashed on first run)
-  static const String defaultAdminPin = '8890';
+  // No default PIN — users must create their own during first-run setup.
+  // This empty value triggers the first-run onboarding flow in AuthService.
+  static const String defaultAdminPin = '';
 
   // Security questions
   static const List<String> securityQuestions = [
