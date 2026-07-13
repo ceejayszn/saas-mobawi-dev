@@ -3,7 +3,7 @@ services:
     name: mobawi-backend-api
     runtime: docker
     plan: free
-    rootDirectory: backend_api
+    rootDir: backend_api
     envVars:
       - key: DATABASE_URL
         sync: false
