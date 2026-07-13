@@ -1,229 +1,98 @@
-# 🚀 Railway Database Setup Tutorial
+# 🚀 Mobawi SaaS Platform Deployment Tutorial
 ### Complete Beginner's Guide — Step by Step, No Coding Knowledge Required
 
----
-
-## What is Railway and Why Do We Need It?
-
-Think of Railway like renting a small computer on the internet 24/7.
-
-Right now your database only saves data on one tablet. If that tablet breaks — all data is gone.
-
-With Railway:
-- Your data is saved **online** (in the cloud)
-- Any tablet with internet can access it
-- Railway keeps **automatic backups**
-- You can see everything from anywhere in the world
+This guide will show you how to take your entire multi-tenant hotel SaaS platform online. We will set up the **Neon Database**, deploy the **Render Backend API**, and host the **Vercel Admin UI**.
 
 ---
 
-## STEP 1 — Create a Railway Account
+## The SaaS Architecture
 
-1. Open your browser (Chrome recommended)
-2. Go to: **https://railway.app**
-3. Click the **"Login"** button at the top right
-4. Click **"Login with GitHub"**
+All your code lives in a single GitHub repository (`ceejayszn/saas-mobawi-dev`). We will connect different parts of this repository to different cloud hosting services:
 
-> If you don't have GitHub yet, go to **https://github.com** first, create a free account, then come back.
-
-5. Approve Railway access to GitHub when it asks
-6. You are now inside Railway's dashboard ✅
-
----
-
-## STEP 2 — Create a New Project
-
-1. On your Railway dashboard, click the big **"+ New Project"** button
-2. A menu will pop up — choose **"Empty Project"**
-3. Railway creates a blank project (it may auto-name it something random — that's fine)
-
----
-
-## STEP 3 — Add a PostgreSQL Database
-
-This is the actual database where all your hotel data will live.
-
-1. Inside your new project, click the **"+ Add Service"** button (or the `+` icon)
-2. Select **"Database"** from the list
-3. Select **"Add PostgreSQL"**
-4. Railway will spin up your database in about 30 seconds — you'll see a purple box appear
-
----
-
-## STEP 4 — Get Your Database Connection String
-
-This is like the "secret password address" to your database. You need to copy it.
-
-1. Click on the **purple PostgreSQL box** in your project
-2. Click the **"Variables"** tab at the top
-3. You will see a variable called `DATABASE_URL`
-4. Click the **copy icon** next to it
-
-It will look something like this:
-```
-postgresql://postgres:AbCdEfGhIj@monorail.proxy.rlwy.net:12345/railway
+```text
+    ceejayszn/saas-mobawi-dev (GitHub Repo)
+       │
+       ├─── backend_api/ ──────────► Render (Backend API Host) ──► Neon PostgreSQL (Database)
+       └─── mobawi_admin/ ─────────► Vercel (Admin Web Console)
 ```
 
-> ⚠️ **DO NOT share this with anyone.** This is your private database key.
+---
 
-5. **Save this somewhere safe** — you'll need it in Step 7
+## STEP 1 — Create and Set Up Your Database (Neon.tech)
+
+Think of Neon as your secure, cloud hard drive. It saves all your sales, database tables, and tenant information.
+
+1. Open your browser and go to: **[https://neon.tech](https://neon.tech)**
+2. Click **Sign Up** (we recommend signing up with your **GitHub** account).
+3. Once logged in, click **Create Project**.
+4. Fill in the project details:
+   * **Project Name**: Type `mobawi-db`
+   * **PostgreSQL Version**: Leave it on `16` (the default)
+   * **Region**: Choose the region closest to your customers (e.g., *Singapore*, *US East*, or *Europe*)
+5. Click **Create Project**.
+6. A popup will show you your **Connection String** (database address). It looks like this:
+   ```text
+   postgresql://neondb_owner:npg_xyz123abc@ep-empty-paper-azrcpyze-pooler.c-3.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
+   ```
+7. Click the **Copy** icon next to the link. Save this string in a text file on your computer—you will need it in the next steps!
 
 ---
 
-## STEP 5 — Deploy Your Backend Server
+## STEP 2 — Deploy Your Backend API Server (Render.com)
 
-Now we tell Railway to also host your Node.js backend (the server code).
+Render will host your Node.js backend. Render reads your repository, builds a Docker image, and keeps the server running 24/7.
 
-1. Still inside your project, click **"+ Add Service"** again
-2. This time choose **"GitHub Repo"**
-3. Railway will ask you to connect GitHub — click **"Connect GitHub"** and authorize it
-4. You'll see a list of your repositories — select **`euton-db.admin`**
-5. Click **"Add Service"**
-
----
-
-## STEP 6 — Set the Root Directory (CRITICAL STEP ⚠️)
-
-This is the most important step. Your project has multiple apps inside it. You must tell Railway which folder has the server.
-
-1. Click on your newly created backend service box (it won't be purple — it'll be a different color)
-2. Click the **"Settings"** tab
-3. Scroll down to find **"Root Directory"**
-4. Click the edit field and type exactly: `backend_api`
-5. Press **Enter** or click **Save**
-6. Railway will restart and now look in the right folder ✅
-
----
-
-## STEP 7 — Add Your Environment Variables
-
-Your server needs to know the database address. We set it here.
-
-1. Click on your backend service
-2. Click the **"Variables"** tab
-3. Click **"+ New Variable"** and add these one by one:
-
-| Variable Name | Value |
-|---|---|
-| `DATABASE_URL` | *(paste the long postgresql:// link you copied in Step 4)* |
-| `PORT` | `3000` |
-| `NODE_ENV` | `production` |
-
-4. After adding all three, click **"Deploy"** or wait for Railway to automatically redeploy
+1. Go to: **[https://render.com](https://render.com)**
+2. Sign up or log in (choose **GitHub** to log in, so Render can access your code).
+3. On your Render dashboard, click the blue **New +** button at the top right, then select **Blueprint**.
+4. You will see a list of your repositories. Locate `ceejayszn/saas-mobawi-dev` and click **Connect**.
+5. Give your blueprint a service group name, like `mobawi-services`.
+6. Scroll down to the **Blueprint Configuration** inputs:
+   * **Branch**: Leave it as `main`.
+   * **Blueprint Path (CRITICAL)**: Change `render.yaml` to:
+     ```text
+     backend_api/render.yaml
+     ```
+     *(This tells Render to look inside the `backend_api` subfolder for the deployment settings).*
+7. Look at the variable input fields that appear:
+   * **`DATABASE_URL`**: Paste your Neon connection string (from Step 1).
+   * **`JWT_SECRET`**: Paste a long random string of numbers and letters (e.g., `f1d39bc53e5bdf9b32a6cb82e75e18a2d129a3e5f4ef7a8e09f8d9b1c20f781a`) to secure your API tokens.
+8. Click **Apply** or **Create Service**.
+9. Render will take 2–3 minutes to build and launch your server. Once the logs say **"Live"** with a green badge, look at the top left of the dashboard. Copy your **Public URL** (it looks like `https://mobawi-backend-api.onrender.com`).
 
 ---
 
-## STEP 8 — Watch the Build Logs
+## STEP 3 — Deploy the Admin Web Hub (Vercel.com)
 
-1. Click your backend service
-2. Click the **"Deployments"** tab
-3. Click on the latest deployment
-4. You'll see logs scrolling — this is Railway building your server
-5. Wait until you see:
+Vercel will host your Admin Web Hub (`mobawi_admin`) which lets you monitor all your tenant apps.
 
-```
-✅ Server running on port 3000
-✅ Database connected successfully
-```
-
-If you see any red errors, take a screenshot and send it to your developer.
-
----
-
-## STEP 9 — Get Your Public URL
-
-1. Click your backend service
-2. Click the **"Settings"** tab
-3. Under **"Domains"**, click **"Generate Domain"**
-4. Railway gives you a public link like:
-```
-https://backend-api-production-xxxx.up.railway.app
-```
-5. **Copy this URL** — you'll use it to connect your tablet apps
+1. Go to: **[https://vercel.com](https://vercel.com)**
+2. Click **Sign Up** and choose **GitHub** (it is best if your database, backend, and frontend are all linked via the same GitHub login).
+3. Once inside Vercel's dashboard, click **Add New** -> **Project**.
+4. In the list of GitHub repositories, find `ceejayszn/saas-mobawi-dev` and click **Import**.
+5. Under the **Configure Project** settings, find the **Root Directory** field.
+6. Click **Edit** or click the folder search icon, and select:
+   ```text
+   mobawi_admin
+   ```
+   *(This tells Vercel that your web project lives inside the `mobawi_admin` subfolder).*
+7. For the **Framework Preset**, select **Flutter** (or Vercel will auto-detect it based on your `pubspec.yaml`).
+8. Under **Environment Variables**, add:
+   * **Name**: `NEXUS_API_URL`
+   * **Value**: *(Paste your Render Public URL, e.g., `https://mobawi-backend-api.onrender.com`)*
+9. Click **Deploy**. Vercel will build your web app and publish it live!
 
 ---
 
-## STEP 10 — Test That It's Working
+## STEP 4 — Updating Code in the Future
 
-1. Open Chrome
-2. Paste your Railway URL and add `/health` at the end:
-```
-https://backend-api-production-xxxx.up.railway.app/health
-```
-3. You should see something like:
-```json
-{ "status": "ok", "database": "connected" }
-```
-That means everything is working! 🎉
+Because everything is configured as a Monorepo, updating the live servers is extremely easy. When you make changes in your code editor locally:
 
----
-
-## STEP 11 — Run Database Migrations
-
-Your database needs tables (like spreadsheets) before it can save data.
-
-1. In Railway, click your backend service
-2. Click **"Settings"** → scroll to **"Deploy Command"**
-3. Check if it says `npm start` or `node dist/index.js` — that's fine
-4. The server automatically runs migrations when it starts (Prisma handles this)
-5. If tables weren't created, click your service → **"Deploy"** tab → **"Redeploy"**
-
----
-
-## What Happens After Setup?
-
-Once Railway is running:
-
-| Action | What Happens |
-|---|---|
-| Staff makes a sale on the tablet | Data saved to Railway database online |
-| You open Boss App | You see live data from Railway |
-| Railway crashes (rare) | It automatically restarts itself |
-| You update code and `git push` | Railway auto-deploys the new version |
-| Power goes out at hotel | Railway still running — no data lost |
-
----
-
-## Troubleshooting Common Issues
-
-### ❌ "Build failed" in Railway
-- Make sure Root Directory is set to `backend_api` (Step 6)
-- Check the logs for red error messages and send to developer
-
-### ❌ Database shows "Disconnected"
-- Go back and check your `DATABASE_URL` variable — it may have been entered incorrectly
-- Re-copy it from the PostgreSQL service Variables tab
-
-### ❌ "Cannot connect to server" on tablet
-- Check that your Railway service has a green "Active" badge
-- Make sure the tablet has working Wi-Fi
-- The Railway URL may have changed — re-copy it from Step 9
-
-### ✅ How to update your backend code in future
-Every time your developer makes a change, just run:
-```bash
-git add .
-git commit -m "Updated code"
-git push
-```
-Railway will automatically pick up the change and redeploy — no manual action needed!
-
----
-
-## Summary Checklist
-
-- [ ] Created Railway account (linked to GitHub)
-- [ ] Created New Project
-- [ ] Added PostgreSQL database
-- [ ] Copied DATABASE_URL
-- [ ] Added GitHub repo as a service
-- [ ] Set Root Directory to `backend_api`
-- [ ] Added DATABASE_URL, PORT, NODE_ENV variables
-- [ ] Watched deployment logs — no red errors
-- [ ] Generated public domain URL
-- [ ] Tested `/health` endpoint in browser ✅
-
----
-
-*Password for Boss Admin App: `8890`*
-*GitHub Repo: https://github.com/ceejayszn/euton-db.admin*
+1. Open your terminal at the root of the repository (`apps/felixpinski`).
+2. Run these commands:
+   ```bash
+   git add .
+   git commit -m "Describe what changes you made"
+   git push origin main
+   ```
+3. That is it! Render and Vercel will instantly see the new code and redeploy the live backend and frontend websites automatically within a few minutes.
