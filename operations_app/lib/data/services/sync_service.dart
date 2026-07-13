@@ -9,7 +9,7 @@ class SyncService {
 
   SyncService._init();
 
-  String baseUrl = 'http://10.0.2.2:3000'; // Default to Android emulator host loopback, editable at runtime
+  String baseUrl = 'https://mobawi-backend-api.onrender.com'; // Live Render API endpoint
   String businessId = 'felixpinski'; // Multi-tenant scoping header context
   bool _isSyncing = false;
   Timer? _syncTimer;
