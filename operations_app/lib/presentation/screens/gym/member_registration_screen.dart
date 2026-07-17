@@ -173,7 +173,7 @@ class _MemberRegistrationScreenState extends State<MemberRegistrationScreen> {
                 children: [
                   Expanded(
                     child: DropdownButtonFormField<String>(
-                      value: _gender,
+                      initialValue: _gender,
                       decoration: const InputDecoration(labelText: 'Gender', border: OutlineInputBorder()),
                       items: ['Male', 'Female', 'Other']
                           .map((label) => DropdownMenuItem(value: label, child: Text(label)))
@@ -220,7 +220,7 @@ class _MemberRegistrationScreenState extends State<MemberRegistrationScreen> {
                 children: [
                   Expanded(
                     child: DropdownButtonFormField<String>(
-                      value: _membershipPackage,
+                      initialValue: _membershipPackage,
                       decoration: const InputDecoration(labelText: 'Membership Plan', border: OutlineInputBorder()),
                       items: [
                         'Monthly Basic - \$30',

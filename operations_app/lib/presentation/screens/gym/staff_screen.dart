@@ -45,7 +45,7 @@ class _StaffScreenState extends State<StaffScreen> {
                     margin: const EdgeInsets.symmetric(vertical: 8),
                     child: ListTile(
                       leading: CircleAvatar(
-                        backgroundColor: isOnDuty ? Colors.green.withOpacity(0.2) : Colors.grey.withOpacity(0.2),
+                        backgroundColor: isOnDuty ? Colors.green.withValues(alpha: 0.2) : Colors.grey.withValues(alpha: 0.2),
                         child: Icon(Icons.person, color: isOnDuty ? Colors.green : Colors.grey),
                       ),
                       title: Text(staff['name'], style: const TextStyle(fontWeight: FontWeight.bold)),

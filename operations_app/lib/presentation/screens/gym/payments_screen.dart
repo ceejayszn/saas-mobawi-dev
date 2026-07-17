@@ -110,7 +110,7 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
             Text('Select Payment Method', style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
-              value: _paymentMethod,
+              initialValue: _paymentMethod,
               decoration: const InputDecoration(border: OutlineInputBorder()),
               items: ['M-Pesa', 'Cash', 'Card', 'Bank Transfer']
                   .map((method) => DropdownMenuItem(value: method, child: Text(method)))

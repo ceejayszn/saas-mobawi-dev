@@ -231,7 +231,7 @@ class _BossReportsScreenState extends State<BossReportsScreen> {
           return ListTile(
             leading: Container(
               padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(color: cat.color.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
+              decoration: BoxDecoration(color: cat.color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10)),
               child: Icon(cat.icon, color: cat.color, size: 18),
             ),
             title: Text(cat.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),

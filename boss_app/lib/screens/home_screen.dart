@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../core/constants/app_constants.dart';
 import '../theme/app_colors.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -220,7 +219,7 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             Container(
               padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(color: color.withOpacity(0.1), shape: BoxShape.circle),
+              decoration: BoxDecoration(color: color.withValues(alpha: 0.1), shape: BoxShape.circle),
               child: Icon(icon, color: color, size: 18),
             ),
             const SizedBox(height: 6),

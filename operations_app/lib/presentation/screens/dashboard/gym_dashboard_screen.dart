@@ -27,7 +27,7 @@ class _GymDashboardScreenState extends State<GymDashboardScreen> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
+
 
     // List of screens for the POS shell
     final List<Widget> panels = [
@@ -109,13 +109,12 @@ class _GymDashboardScreenState extends State<GymDashboardScreen> {
         ),
       ),
       selected: isActive,
-      selectedTileColor: colorScheme.primaryContainer.withOpacity(0.3),
+      selectedTileColor: colorScheme.primaryContainer.withValues(alpha: 0.3),
       onTap: () => _navigateToPanel(index),
     );
   }
 
   Widget _buildDashboardHome(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
     return SingleChildScrollView(
@@ -182,7 +181,7 @@ class _GymDashboardScreenState extends State<GymDashboardScreen> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: color.withOpacity(0.1),
+                    color: color.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(icon, color: color),
