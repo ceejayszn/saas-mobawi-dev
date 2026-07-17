@@ -126,9 +126,17 @@ class NexusApi {
       final response = await http.get(
         Uri.parse('$apiBaseUrl/api/nexus/overview'),
         headers: _headers,
-      ).timeout(const Duration(seconds: 3));
+      ).timeout(const Duration(seconds: 5));
       if (response.statusCode == 200) {
-        return jsonDecode(response.body) as Map<String, dynamic>;
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        if (data['success'] == true) {
+          return {
+            'revenue': data['totalRevenue']?.toStringAsFixed(2) ?? '0.00',
+            'uptime': data['uptimePercentage']?.toString() ?? '99.99',
+            'ai_requests': data['activeBusinesses']?.toString() ?? '0',
+            'customers_count': data['systemUsers']?.toString() ?? '0',
+          };
+        }
       }
     } catch (e) {
       debugPrint('Overview API fetch failed: $e');
