@@ -20,15 +20,23 @@ import 'features/website_center/website_center_screen.dart';
 import 'features/settings/settings_screen.dart';
 
 
+import 'package:shared_preferences/shared_preferences.dart';
+
 // Global Notifier for Theme Toggle
 final ValueNotifier<ThemeMode> themeModeNotifier = ValueNotifier(ThemeMode.dark);
 
-void main() {
-  runApp(const MobawiNexusApp());
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final prefs = await SharedPreferences.getInstance();
+  final isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
+
+  runApp(MobawiNexusApp(isLoggedIn: isLoggedIn));
 }
 
 class MobawiNexusApp extends StatelessWidget {
-  const MobawiNexusApp({super.key});
+  final bool isLoggedIn;
+  
+  const MobawiNexusApp({super.key, required this.isLoggedIn});
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +49,7 @@ class MobawiNexusApp extends StatelessWidget {
           theme: NexusTheme.lightTheme,
           darkTheme: NexusTheme.darkTheme,
           themeMode: currentMode,
-          home: const PasswordScreen(),
+          home: isLoggedIn ? const NexusShell() : const PasswordScreen(),
         );
       },
     );
@@ -321,6 +329,9 @@ class _PasswordScreenState extends State<PasswordScreen> {
   void _submit(String value) async {
     // Hardcoded bypass as requested
     if (value == 'kali') {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('isLoggedIn', true);
+      
       if (!mounted) return;
       Navigator.pushReplacement(
         context,
