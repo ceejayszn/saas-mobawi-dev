@@ -2,6 +2,7 @@ services:
   - type: web
     name: mobawi-backend-api
     runtime: docker
+    rootDir: backend_api
     plan: free
     envVars:
       - key: DATABASE_URL
