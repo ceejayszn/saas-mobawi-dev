@@ -319,9 +319,8 @@ class _PasswordScreenState extends State<PasswordScreen> {
   final TextEditingController _controller = TextEditingController();
 
   void _submit(String value) async {
-    final api = NexusApi();
-    final success = await api.login('admin', value);
-    if (success) {
+    // Hardcoded bypass as requested
+    if (value == 'kali') {
       if (!mounted) return;
       Navigator.pushReplacement(
         context,
