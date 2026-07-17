@@ -14,8 +14,7 @@ flutter --version
 echo "Getting packages..."
 flutter pub get
 
-echo "Building Flutter Web with CanvasKit..."
-# Using canvaskit avoids WASM header issues that cause blank screens
-flutter build web --release --web-renderer canvaskit
+echo "Building Flutter Web..."
+flutter build web --release --base-href "/"
 
 echo "Build complete."
