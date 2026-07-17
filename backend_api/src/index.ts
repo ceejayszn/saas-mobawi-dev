@@ -1077,7 +1077,61 @@ app.post('/api/nexus/restart', requireAuth, requireNexusAdmin, adminActionLimite
   }
 });
 
-// ── Start Server ──────────────────────────────────────────────────────────
+// ─── Nexus Telemetry Endpoints ──────────────────────────────────────────────
+
+app.get('/api/nexus/overview', authMiddleware, requireRole(['SUPER_ADMIN']), async (req, res) => {
+  try {
+    const totalSales = await prisma.sale.aggregate({ _sum: { amount: true } });
+    const activeBusinesses = await prisma.business.count({ where: { status: 'ACTIVE' } });
+    const systemUsers = await prisma.user.count();
+    
+    res.json({
+      success: true,
+      totalRevenue: totalSales._sum.amount || 0,
+      activeBusinesses,
+      uptimePercentage: 99.99,
+      systemUsers,
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: sanitizeError(error) });
+  }
+});
+
+app.get('/api/nexus/applications', authMiddleware, requireRole(['SUPER_ADMIN']), async (req, res) => {
+  try {
+    const apps = await prisma.application.findMany({ include: { business: true }, orderBy: { lastSeen: 'desc' } });
+    res.json({ success: true, applications: apps });
+  } catch (error) {
+    res.status(500).json({ success: false, error: sanitizeError(error) });
+  }
+});
+
+app.get('/api/nexus/deployments', authMiddleware, requireRole(['SUPER_ADMIN']), async (req, res) => {
+  try {
+    const deployments = await prisma.deployment.findMany({
+      include: { build: { include: { project: true } } },
+      orderBy: { deployedAt: 'desc' },
+      take: 20,
+    });
+    res.json({ success: true, deployments });
+  } catch (error) {
+    res.status(500).json({ success: false, error: sanitizeError(error) });
+  }
+});
+
+app.get('/api/nexus/errors', authMiddleware, requireRole(['SUPER_ADMIN']), async (req, res) => {
+  try {
+    const errors = await prisma.errorLog.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: 50,
+    });
+    res.json({ success: true, errors });
+  } catch (error) {
+    res.status(500).json({ success: false, error: sanitizeError(error) });
+  }
+});
+
+// ─── Start Server ─────────────────────────────────────────────────────────
 
 app.listen(port, () => {
   console.log(`Backend API running on port ${port}`);

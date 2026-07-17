@@ -32,6 +32,7 @@ model Business {
   checkInRecords     CheckInRecord[]
   payments           Payment[]
   equipment          Equipment[]
+  applications       Application[]
 
   @@index([status])
   @@index([type])
@@ -387,4 +388,69 @@ model Equipment {
   updatedAt       DateTime  @updatedAt
 
   @@index([businessId])
+}
+
+model Application {
+  id           String    @id @default(uuid())
+  name         String
+  packageName  String
+  platform     String
+  version      String
+  buildNumber  String
+  environment  String    @default("production")
+  onlineStatus String    @default("OFFLINE")
+  lastSeen     DateTime  @default(now())
+  businessId   String?
+  business     Business? @relation(fields: [businessId], references: [id])
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([businessId])
+}
+
+model Project {
+  id           String   @id @default(uuid())
+  name         String
+  repository   String
+  branch       String
+  status       String   @default("ACTIVE")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  builds       Build[]
+}
+
+model Build {
+  id           String       @id @default(uuid())
+  projectId    String
+  project      Project      @relation(fields: [projectId], references: [id])
+  version      String
+  status       String       @default("PENDING")
+  logs         String?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  deployments  Deployment[]
+
+  @@index([projectId])
+}
+
+model Deployment {
+  id           String   @id @default(uuid())
+  buildId      String
+  build        Build    @relation(fields: [buildId], references: [id])
+  environment  String   @default("production")
+  status       String   @default("SUCCESS")
+  deployedAt   DateTime @default(now())
+
+  @@index([buildId])
+}
+
+model ErrorLog {
+  id           String   @id @default(uuid())
+  appId        String?
+  module       String
+  severity     String   @default("ERROR")
+  description  String
+  stackTrace   String?
+  resolved     Boolean  @default(false)
+  createdAt    DateTime @default(now())
 }
