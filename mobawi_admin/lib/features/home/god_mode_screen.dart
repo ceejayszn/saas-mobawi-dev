@@ -4,7 +4,7 @@ import '../../core/theme/nexus_theme.dart';
 import '../../core/widgets/common/nexus_card.dart';
 import '../../core/services/nexus_api.dart';
 import '../../core/widgets/common/empty_state.dart';
-import '../../core/widgets/common/kpi_card.dart';
+
 import '../../core/widgets/common/crm_kpi_card.dart';
 
 class GodModeScreen extends StatefulWidget {
@@ -20,6 +20,7 @@ class _GodModeScreenState extends State<GodModeScreen> {
   final NexusApi _api = NexusApi();
   bool _isLoading = true;
   Map<String, dynamic> _overview = {};
+  List<dynamic> _applications = [];
 
   @override
   void initState() {
@@ -28,10 +29,15 @@ class _GodModeScreenState extends State<GodModeScreen> {
   }
 
   Future<void> _loadOverview() async {
-    final data = await _api.fetchFounderOverview();
+    final futures = await Future.wait([
+      _api.fetchFounderOverview(),
+      _api.fetchApplications(),
+    ]);
+
     if (mounted) {
       setState(() {
-        _overview = data;
+        _overview = futures[0] as Map<String, dynamic>;
+        _applications = futures[1] as List<dynamic>;
         _isLoading = false;
       });
     }
@@ -288,9 +294,18 @@ class _GodModeScreenState extends State<GodModeScreen> {
                       Text('System Tasks & Active Workspaces', style: theme.textTheme.headlineMedium),
                       const SizedBox(height: 16),
                       // Workspace Table structure
-                      _buildWorkspaceItem('Natty Gym POS', 'ACTIVE', 'HOTEL / SPORTS', 'Priority HIGH'),
-                      _buildWorkspaceItem('Dionamax Pharmacy', 'ACTIVE', 'HEALTHCARE', 'Priority HIGH'),
-                      _buildWorkspaceItem('Rongai Quick POS', 'SUSPENDED', 'RETAIL', 'Priority LOW'),
+                      if (_applications.isEmpty)
+                        const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 16.0),
+                          child: Text('No active workspaces found. Waiting for client telemetry...', style: TextStyle(color: Colors.grey)),
+                        )
+                      else
+                        ..._applications.map((app) => _buildWorkspaceItem(
+                          app['name']?.toString() ?? 'Unknown App',
+                          app['onlineStatus']?.toString() ?? 'OFFLINE',
+                          app['platform']?.toString() ?? 'SYSTEM',
+                          'v${app['version'] ?? '1.0'}',
+                        )),
                     ],
                   ),
                 ),
