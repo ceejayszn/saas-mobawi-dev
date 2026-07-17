@@ -1,7 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-import '../../core/theme/nexus_theme.dart';
-import '../../core/widgets/common/nexus_card.dart';
+class NexusTheme {
+  static const Color background = Colors.white;
+  static const Color border = Colors.grey;
+  static const Color surface = Colors.white;
+  static const Color accent = Colors.blue;
+  static const Color textSecondary = Colors.grey;
+  static const Color textPrimary = Colors.black;
+  static const Color success = Colors.green;
+  static const Color error = Colors.red;
+  static const Color warning = Colors.orange;
+  static const Color textMuted = Colors.grey;
+  static const Color surfaceElevated = Colors.white;
+  static const Color accentSecondary = Colors.lightBlue;
+}
+
+class NexusCard extends StatelessWidget {
+  final Widget child;
+  const NexusCard({super.key, required this.child});
+  @override
+  Widget build(BuildContext context) {
+    return Card(child: Padding(padding: const EdgeInsets.all(16), child: child));
+  }
+}
 
 class HotelPosScreen extends StatefulWidget {
   final Function(String) onNavigate;

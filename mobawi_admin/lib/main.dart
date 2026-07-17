@@ -18,7 +18,7 @@ import 'features/ai_center/ai_center_screen.dart';
 import 'features/assistant/ai_assistant_screen.dart';
 import 'features/website_center/website_center_screen.dart';
 import 'features/settings/settings_screen.dart';
-import 'features/hotel_pos/hotel_pos_screen.dart';
+
 
 // Global Notifier for Theme Toggle
 final ValueNotifier<ThemeMode> themeModeNotifier = ValueNotifier(ThemeMode.dark);
@@ -108,8 +108,7 @@ class _NexusShellState extends State<NexusShell> {
         return InfrastructureScreen(onNavigate: (sec) => setState(() => _activeSection = sec));
       case 'billing':
         return BillingScreen(onNavigate: (sec) => setState(() => _activeSection = sec));
-      case 'hotel_pos':
-        return HotelPosScreen(onNavigate: (sec) => setState(() => _activeSection = sec));
+
       case 'security':
         return SecurityScreen(onNavigate: (sec) => setState(() => _activeSection = sec));
       case 'ai_center':
