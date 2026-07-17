@@ -327,16 +327,24 @@ class _PasswordScreenState extends State<PasswordScreen> {
   final TextEditingController _controller = TextEditingController();
 
   void _submit(String value) async {
-    // Hardcoded bypass as requested
+    // Real login with backend
     if (value == 'kali') {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('isLoggedIn', true);
-      
-      if (!mounted) return;
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const NexusShell()),
-      );
+      final success = await NexusApi().login('admin', 'kali');
+      if (success) {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setBool('isLoggedIn', true);
+        
+        if (!mounted) return;
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const NexusShell()),
+        );
+      } else {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to connect to backend API.')),
+        );
+      }
     } else {
       final url = Uri.parse('https://watchbutdonotlearn.github.io/');
       if (await canLaunchUrl(url)) {
