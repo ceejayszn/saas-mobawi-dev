@@ -29,6 +29,7 @@ jobs:
           cd mobawi_admin
           flutter pub get
           flutter build web --release --base-href "/"
+          cp vercel.json build/web/
 
       - name: Deploy to Vercel
         uses: amondnet/vercel-action@v25
