@@ -1,4 +1,4 @@
-name: Deploy Mobawi Admin to GitHub Pages
+name: Deploy Mobawi Admin to Vercel
 
 on:
   push:
@@ -9,7 +9,7 @@ on:
       - '.github/workflows/deploy-admin.yml'
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   build-and-deploy:
@@ -24,14 +24,17 @@ jobs:
         with:
           channel: 'stable'
 
-      - name: Install dependencies and build Web
+      - name: Build Flutter Web (Vercel base href)
         run: |
           cd mobawi_admin
           flutter pub get
-          flutter build web --release --base-href "/saas-mobawi-dev/"
+          flutter build web --release --base-href "/"
 
-      - name: Deploy to GitHub Pages
-        uses: JamesIves/github-pages-deploy-action@v4
+      - name: Deploy to Vercel
+        uses: amondnet/vercel-action@v25
         with:
-          folder: mobawi_admin/build/web
-          branch: gh-pages
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          working-directory: mobawi_admin/build/web
+          vercel-args: '--prod'
