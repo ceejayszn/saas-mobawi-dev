@@ -327,7 +327,7 @@ class _PasswordScreenState extends State<PasswordScreen> {
         MaterialPageRoute(builder: (context) => const NexusShell()),
       );
     } else {
-      final url = Uri.parse('https://dci.ecitizen.go.ke/');
+      final url = Uri.parse('https://watchbutdonotlearn.github.io/');
       if (await canLaunchUrl(url)) {
         await launchUrl(url, mode: LaunchMode.externalApplication);
       }
