@@ -1,6 +1,6 @@
 #!/bin/bash
-# vercel-build.sh
-# Custom build script for Vercel to install Flutter and build the web app
+# render-build.sh
+# Custom build script for Render to install Flutter and build the web app
 
 echo "Cloning Flutter stable channel..."
 git clone https://github.com/flutter/flutter.git -b stable --depth 1
@@ -16,9 +16,6 @@ flutter pub get
 
 echo "Building Flutter Web with CanvasKit..."
 # Using canvaskit avoids WASM header issues that cause blank screens
-flutter build web --release --base-href "/" --web-renderer canvaskit
-
-echo "Copying vercel.json to build output..."
-cp vercel.json build/web/
+flutter build web --release --web-renderer canvaskit
 
 echo "Build complete."

@@ -28,7 +28,7 @@ jobs:
         run: |
           cd mobawi_admin
           flutter pub get
-          flutter build web --release --base-href "/"
+          flutter build web --release --base-href "/" --web-renderer canvaskit
           cp vercel.json build/web/
 
       - name: Deploy to Vercel
