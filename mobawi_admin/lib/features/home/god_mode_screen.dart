@@ -5,6 +5,7 @@ import '../../core/widgets/common/nexus_card.dart';
 import '../../core/services/nexus_api.dart';
 import '../../core/widgets/common/empty_state.dart';
 import '../../core/widgets/common/kpi_card.dart';
+import '../../core/widgets/common/crm_kpi_card.dart';
 
 class GodModeScreen extends StatefulWidget {
   final Function(String) onNavigate;
@@ -123,41 +124,37 @@ class _GodModeScreenState extends State<GodModeScreen> {
             childAspectRatio: 1.65,
             physics: const NeverScrollableScrollPhysics(),
             children: [
-              KpiCard(
-                title: 'Revenue (M-Pesa)',
+              CrmKpiCard(
+                title: 'Total Revenue (M-Pesa)',
                 value: 'KES ${_overview['revenue'] ?? '0.00'}',
-                subtitle: 'vs last week',
-                icon: Icons.payments_outlined,
-                iconColor: theme.primaryColor,
-                trend: '+12.4%',
-                isTrendPositive: true,
+                trend: '+12.4% from yesterday',
+                icon: Icons.bar_chart_rounded,
+                baseColor: const Color(0xFFF97316), // Orange
                 onTap: () => widget.onNavigate('billing'),
               ),
-              KpiCard(
-                title: 'Total Active Customers',
-                value: '${_overview['customers_count'] ?? 0}',
-                subtitle: 'Active workspaces',
-                icon: Icons.business_outlined,
-                iconColor: NexusTheme.accent,
-                onTap: () => widget.onNavigate('customers'),
-              ),
-              KpiCard(
+              CrmKpiCard(
                 title: 'Platform Uptime',
                 value: '${_overview['uptime'] ?? '0.00'}%',
-                subtitle: 'Railway + Cloudflare health',
-                icon: Icons.speed_outlined,
-                iconColor: NexusTheme.success,
-                trend: 'Online',
-                isTrendPositive: true,
+                trend: '+0% from yesterday',
+                icon: Icons.article_outlined,
+                baseColor: const Color(0xFFEAB308), // Yellow
                 onTap: () => widget.onNavigate('command_center'),
               ),
-              KpiCard(
-                title: 'AI Execution Engine',
-                value: '${_overview['ai_requests'] ?? 0} reqs',
-                subtitle: 'Google AI quota utilized',
-                icon: Icons.psychology_outlined,
-                iconColor: NexusTheme.info,
+              CrmKpiCard(
+                title: 'AI Executions',
+                value: '${_overview['ai_requests'] ?? 0}',
+                trend: '+5.2% from yesterday',
+                icon: Icons.local_offer_outlined,
+                baseColor: const Color(0xFF10B981), // Green
                 onTap: () => widget.onNavigate('ai_center'),
+              ),
+              CrmKpiCard(
+                title: 'Active Customers',
+                value: '${_overview['customers_count'] ?? 0}',
+                trend: '+1.5% from yesterday',
+                icon: Icons.person_outline,
+                baseColor: const Color(0xFF0EA5E9), // Cyan/Blue
+                onTap: () => widget.onNavigate('customers'),
               ),
             ],
           ),
