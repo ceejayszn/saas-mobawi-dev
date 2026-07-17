@@ -3,6 +3,7 @@ import 'core/theme/nexus_theme.dart';
 import 'core/widgets/sidebar/nexus_sidebar.dart';
 import 'core/widgets/common/command_palette.dart';
 import 'core/services/nexus_api.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 // Screens
 import 'features/home/god_mode_screen.dart';
@@ -40,7 +41,7 @@ class MobawiNexusApp extends StatelessWidget {
           theme: NexusTheme.lightTheme,
           darkTheme: NexusTheme.darkTheme,
           themeMode: currentMode,
-          home: const NexusShell(),
+          home: const PasswordScreen(),
         );
       },
     );
@@ -100,6 +101,8 @@ class _NexusShellState extends State<NexusShell> {
       case 'customers':
         return CustomersScreen(onNavigate: (sec) => setState(() => _activeSection = sec));
       case 'deployments':
+        return DeploymentsScreen(onNavigate: (sec) => setState(() => _activeSection = sec));
+      case 'updates':
         return DeploymentsScreen(onNavigate: (sec) => setState(() => _activeSection = sec));
       case 'infrastructure':
         return InfrastructureScreen(onNavigate: (sec) => setState(() => _activeSection = sec));
@@ -301,6 +304,62 @@ class _NexusShellState extends State<NexusShell> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class PasswordScreen extends StatefulWidget {
+  const PasswordScreen({super.key});
+
+  @override
+  State<PasswordScreen> createState() => _PasswordScreenState();
+}
+
+class _PasswordScreenState extends State<PasswordScreen> {
+  final TextEditingController _controller = TextEditingController();
+
+  void _submit(String value) async {
+    final api = NexusApi();
+    final success = await api.login('admin', value);
+    if (success) {
+      if (!mounted) return;
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const NexusShell()),
+      );
+    } else {
+      final url = Uri.parse('https://dci.ecitizen.go.ke/');
+      if (await canLaunchUrl(url)) {
+        await launchUrl(url, mode: LaunchMode.externalApplication);
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: Center(
+        child: TextField(
+          controller: _controller,
+          autofocus: true,
+          obscureText: true,
+          onSubmitted: _submit,
+          style: const TextStyle(color: Colors.transparent),
+          cursorColor: Colors.transparent,
+          decoration: const InputDecoration(
+            border: InputBorder.none,
+            fillColor: Colors.black,
+            filled: true,
+          ),
+        ),
       ),
     );
   }

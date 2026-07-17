@@ -8,23 +8,30 @@ datasource db {
 }
 
 model Business {
-  id           String          @id @default(uuid())
-  name         String
-  type         String          // "HOTEL", "RETAIL_SHOP", "PHARMACY"
-  status       String          @default("ACTIVE")
-  createdAt    DateTime        @default(now())
-  updatedAt    DateTime        @updatedAt
-  
-  users        User[]
-  sales        Sale[]
-  expenses     Expense[]
-  productions  Production[]
-  personnels   Personnel[]
-  products     Product[]
-  auditLogs    AuditLog[]
-  activityLogs ActivityLog[]
-  deviceLogs   DeviceLog[]
-  systemHealth SystemHealth[]
+  id        String   @id @default(uuid())
+  name      String
+  type      String // "HOTEL", "RETAIL_SHOP", "PHARMACY"
+  status    String   @default("ACTIVE")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users              User[]
+  sales              Sale[]
+  expenses           Expense[]
+  productions        Production[]
+  personnels         Personnel[]
+  products           Product[]
+  auditLogs          AuditLog[]
+  activityLogs       ActivityLog[]
+  deviceLogs         DeviceLog[]
+  systemHealth       SystemHealth[]
+  inventory          Inventory[]
+  staffs             Staff[]
+  members            Member[]
+  membershipPackages MembershipPackage[]
+  checkInRecords     CheckInRecord[]
+  payments           Payment[]
+  equipment          Equipment[]
 
   @@index([status])
   @@index([type])
@@ -63,34 +70,34 @@ model ActivityLog {
 model DeploymentLog {
   id        Int      @id @default(autoincrement())
   status    String
-  component String   // e.g., "Railway", "Server", "Database", "API"
+  component String // e.g., "Railway", "Server", "Database", "API"
   time      DateTime @default(now())
   logs      String?
-  createdBy String?  // Who triggered the deployment
+  createdBy String? // Who triggered the deployment
 
   @@index([time])
   @@index([status])
 }
 
 model BackupLog {
-  id        Int      @id @default(autoincrement())
-  date      DateTime @default(now())
-  size      Int
-  duration  Int      // in seconds
-  result    String   // "Success", "Failed"
+  id       Int      @id @default(autoincrement())
+  date     DateTime @default(now())
+  size     Int
+  duration Int // in seconds
+  result   String // "Success", "Failed"
 
   @@index([date])
 }
 
 model DeviceLog {
-  id          Int      @id @default(autoincrement())
-  deviceName  String
-  user        String
-  lastSync    DateTime
-  isOnline    Boolean  @default(false)
-  appVersion  String
-  businessId  String
-  business    Business @relation(fields: [businessId], references: [id])
+  id         Int      @id @default(autoincrement())
+  deviceName String
+  user       String
+  lastSync   DateTime
+  isOnline   Boolean  @default(false)
+  appVersion String
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id])
 
   @@index([businessId])
   @@index([lastSync])
@@ -98,30 +105,30 @@ model DeviceLog {
 }
 
 model SystemHealth {
-  id              Int      @id @default(autoincrement())
-  databaseOnline  Boolean  @default(true)
-  railwayOnline   Boolean  @default(true)
-  apiOnline       Boolean  @default(true)
-  lastBackupDate  DateTime?
-  backupSuccess   Boolean  @default(true)
-  syncStatus      String   @default("OK")
-  appVersion      String
-  buildNumber     String
-  time            DateTime @default(now())
-  businessId      String
-  business        Business @relation(fields: [businessId], references: [id])
+  id             Int       @id @default(autoincrement())
+  databaseOnline Boolean   @default(true)
+  railwayOnline  Boolean   @default(true)
+  apiOnline      Boolean   @default(true)
+  lastBackupDate DateTime?
+  backupSuccess  Boolean   @default(true)
+  syncStatus     String    @default("OK")
+  appVersion     String
+  buildNumber    String
+  time           DateTime  @default(now())
+  businessId     String
+  business       Business  @relation(fields: [businessId], references: [id])
 
   @@index([businessId])
   @@index([time])
 }
 
 model NotificationCenter {
-  id        Int      @id @default(autoincrement())
-  title     String
-  message   String
-  type      String   // e.g., "Error", "Warning", "Info"
-  isRead    Boolean  @default(false)
-  time      DateTime @default(now())
+  id      Int      @id @default(autoincrement())
+  title   String
+  message String
+  type    String // e.g., "Error", "Warning", "Info"
+  isRead  Boolean  @default(false)
+  time    DateTime @default(now())
 
   @@index([isRead])
   @@index([time])
@@ -131,7 +138,7 @@ model User {
   id         Int      @id @default(autoincrement())
   username   String   @unique
   role       String
-  password   String   // Stored as salted hash, never plain text
+  password   String // Stored as salted hash, never plain text
   isActive   Boolean  @default(true)
   businessId String
   business   Business @relation(fields: [businessId], references: [id])
@@ -144,13 +151,19 @@ model User {
 }
 
 model Sale {
-  id         Int      @id @default(autoincrement())
-  amount     Float
-  date       DateTime @default(now())
-  user       String
-  businessId String
-  business   Business @relation(fields: [businessId], references: [id])
-  createdAt  DateTime @default(now())
+  id            String   @id
+  amount        Float
+  date          DateTime @default(now())
+  user          String
+  businessId    String
+  business      Business @relation(fields: [businessId], references: [id])
+  createdAt     DateTime @default(now())
+  status        String   @default("Paid")
+  paymentMethod String   @default("Cash")
+  type          String   @default("In-Store")
+  customerName  String?
+  location      String?
+  items         String? // JSON stringified items
 
   @@index([businessId])
   @@index([date])
@@ -158,14 +171,17 @@ model Sale {
 }
 
 model Expense {
-  id         Int      @id @default(autoincrement())
-  amount     Float
-  category   String
-  date       DateTime @default(now())
-  user       String
-  businessId String
-  business   Business @relation(fields: [businessId], references: [id])
-  createdAt  DateTime @default(now())
+  id          String   @id
+  title       String
+  amount      Float
+  category    String
+  date        DateTime @default(now())
+  user        String
+  businessId  String
+  business    Business @relation(fields: [businessId], references: [id])
+  createdAt   DateTime @default(now())
+  accountName String   @default("General")
+  status      String   @default("Settled")
 
   @@index([businessId])
   @@index([date])
@@ -187,18 +203,18 @@ model Production {
 }
 
 model Personnel {
-  id               Int      @id @default(autoincrement())
-  name             String
-  role             String
-  phone            String
-  assignment       String?
-  amountDue        Float    @default(0.0)
-  amountPaid       Float    @default(0.0)
-  balance          Float    @default(0.0)
-  businessId       String
-  business         Business @relation(fields: [businessId], references: [id])
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  id         Int      @id @default(autoincrement())
+  name       String
+  role       String
+  phone      String
+  assignment String?
+  amountDue  Float    @default(0.0)
+  amountPaid Float    @default(0.0)
+  balance    Float    @default(0.0)
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id])
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   @@index([businessId])
   @@index([role])
@@ -217,3 +233,158 @@ model Product {
   @@index([businessId])
 }
 
+model Inventory {
+  id         String   @id
+  itemName   String
+  quantity   Float
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id])
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([businessId])
+}
+
+model Staff {
+  id               String             @id @default(uuid())
+  name             String
+  role             String
+  status           String // "onDuty", "offDuty", "onHoliday"
+  phone            String?
+  imagePath        String?
+  lastModified     DateTime           @default(now())
+  hourlyWage       Float              @default(0.0)
+  totalHoursWorked Float              @default(0.0)
+  businessId       String
+  business         Business           @relation(fields: [businessId], references: [id])
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  shifts           StaffShift[]
+  transactions     StaffTransaction[]
+
+  @@index([businessId])
+}
+
+model StaffShift {
+  id        String    @id @default(uuid())
+  staffId   String
+  staff     Staff     @relation(fields: [staffId], references: [id], onDelete: Cascade)
+  startTime DateTime
+  endTime   DateTime?
+  date      String
+  createdAt DateTime  @default(now())
+
+  @@index([staffId])
+}
+
+model StaffTransaction {
+  id        String   @id @default(uuid())
+  staffId   String
+  staff     Staff    @relation(fields: [staffId], references: [id], onDelete: Cascade)
+  type      String // "salary", "advance", "allowance", "bonus", "deduction", "expense"
+  amount    Float
+  date      DateTime
+  notes     String?
+  createdAt DateTime @default(now())
+
+  @@index([staffId])
+}
+
+model Member {
+  id                String    @id @default(uuid())
+  memberNumber      String    @unique
+  firstName         String
+  lastName          String
+  phone             String
+  nationalId        String?
+  gender            String?
+  dateOfBirth       DateTime?
+  emergencyContact  String?
+  medicalConditions String?
+  photoPath         String?
+  qrCode            String?
+  barcode           String?
+  status            String    @default("ACTIVE") // ACTIVE, FROZEN, SUSPENDED, EXPIRED
+  startDate         DateTime  @default(now())
+  expiryDate        DateTime?
+  assignedTrainerId String?
+  notes             String?
+  businessId        String
+  business          Business  @relation(fields: [businessId], references: [id])
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  checkIns CheckInRecord[]
+  payments Payment[]
+
+  @@index([businessId])
+  @@index([memberNumber])
+  @@index([phone])
+}
+
+model MembershipPackage {
+  id           String   @id @default(uuid())
+  name         String
+  durationDays Int
+  price        Float
+  description  String?
+  isActive     Boolean  @default(true)
+  businessId   String
+  business     Business @relation(fields: [businessId], references: [id])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([businessId])
+}
+
+model CheckInRecord {
+  id           String    @id @default(uuid())
+  memberId     String
+  member       Member    @relation(fields: [memberId], references: [id])
+  checkInTime  DateTime  @default(now())
+  checkOutTime DateTime?
+  device       String?
+  staffId      String?
+  businessId   String
+  business     Business  @relation(fields: [businessId], references: [id])
+
+  @@index([businessId])
+  @@index([memberId])
+  @@index([checkInTime])
+}
+
+model Payment {
+  id            String   @id @default(uuid())
+  receiptNumber String   @unique
+  memberId      String
+  member        Member   @relation(fields: [memberId], references: [id])
+  amount        Float
+  paymentMethod String // M-PESA, CASH, CARD, BANK
+  status        String   @default("COMPLETED")
+  date          DateTime @default(now())
+  notes         String?
+  businessId    String
+  business      Business @relation(fields: [businessId], references: [id])
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([businessId])
+  @@index([memberId])
+  @@index([date])
+}
+
+model Equipment {
+  id              String    @id @default(uuid())
+  name            String
+  description     String?
+  purchaseDate    DateTime?
+  lastServiceDate DateTime?
+  nextServiceDate DateTime?
+  status          String    @default("OPERATIONAL") // OPERATIONAL, MAINTENANCE, FAULTY
+  businessId      String
+  business        Business  @relation(fields: [businessId], references: [id])
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([businessId])
+}

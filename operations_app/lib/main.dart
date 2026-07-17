@@ -4,8 +4,8 @@ import 'package:provider/provider.dart';
 import 'presentation/providers/app_provider.dart';
 import 'presentation/providers/expense_provider.dart';
 import 'presentation/providers/inventory_provider.dart';
-import 'presentation/providers/menu_provider.dart';
-import 'presentation/providers/order_provider.dart';
+import 'presentation/providers/product_provider.dart';
+import 'presentation/providers/sale_provider.dart';
 import 'presentation/providers/report_provider.dart';
 import 'presentation/screens/splash/splash_screen.dart';
 
@@ -52,13 +52,13 @@ void main() {
           update: (_, repo, prev) => prev ?? ExpenseProvider(repo),
         ),
         ChangeNotifierProvider(create: (_) => InventoryProvider()),
-        ChangeNotifierProxyProvider<IMenuRepository, MenuProvider>(
-          create: (context) => MenuProvider(context.read<IMenuRepository>()),
-          update: (_, repo, prev) => prev ?? MenuProvider(repo),
+        ChangeNotifierProxyProvider<IMenuRepository, ProductProvider>(
+          create: (context) => ProductProvider(context.read<IMenuRepository>()),
+          update: (_, repo, prev) => prev ?? ProductProvider(repo),
         ),
-        ChangeNotifierProxyProvider<IOrderRepository, OrderProvider>(
-          create: (context) => OrderProvider(context.read<IOrderRepository>()),
-          update: (_, repo, prev) => prev ?? OrderProvider(repo),
+        ChangeNotifierProxyProvider<IOrderRepository, SaleProvider>(
+          create: (context) => SaleProvider(context.read<IOrderRepository>()),
+          update: (_, repo, prev) => prev ?? SaleProvider(repo),
         ),
         ChangeNotifierProxyProvider<IReportRepository, ReportProvider>(
           create: (context) => ReportProvider(context.read<IReportRepository>()),

@@ -108,7 +108,7 @@ class _HotelPosScreenState extends State<HotelPosScreen> with SingleTickerProvid
                   children: [
                     Text('EUTON HOTEL POS COMMAND', style: Theme.of(context).textTheme.displayLarge),
                     const SizedBox(height: 4),
-                    Text('Operational analytics, staff rosters, and table states for Euton Hotel.',
+                    Text('Operational analytics, staff rosters, and table states for Copy App.',
                         style: Theme.of(context).textTheme.bodyMedium),
                   ],
                 ),

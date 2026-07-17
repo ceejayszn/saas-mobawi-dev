@@ -34,16 +34,16 @@ class _ReportsScreenState extends State<ReportsScreen> {
     
     if (value == 'Share') {
       final summaryText = '''
-Euton Hotel Boss Analytics Summary
+Copy App Boss Analytics Summary
 Period: ${_selectedTab == 0 ? "Today" : _selectedTab == 1 ? "This Week" : "This Month"}
-Gross Revenue: KES ${report.totalSales.toStringAsFixed(0)}
-Total Costs: KES ${report.totalExpenses.toStringAsFixed(0)}
+Gross Revenue: KES ${report.amountSales.toStringAsFixed(0)}
+Total Costs: KES ${report.amountExpenses.toStringAsFixed(0)}
 Net Profit: KES ${report.netProfit.toStringAsFixed(0)}
 Cash on Hand: KES ${report.cashOnHand.toStringAsFixed(0)}
 M-Pesa Income: KES ${report.mpesaIncome.toStringAsFixed(0)}
 Deliveries: KES ${report.deliveryRevenue.toStringAsFixed(0)}
       ''';
-      await Share.share(summaryText, subject: 'Euton Hotel Analytics');
+      await Share.share(summaryText, subject: 'Copy App Analytics');
     } else if (value == 'Export CSV') {
       try {
         ExportService.shareCsv(report, _selectedTab == 0 ? "Today" : _selectedTab == 1 ? "This Week" : "This Month");
@@ -76,7 +76,7 @@ Deliveries: KES ${report.deliveryRevenue.toStringAsFixed(0)}
         if (result != null && result.files.single.path != null) {
           final chosenPath = result.files.single.path!;
           final dbPath = await getDatabasesPath();
-          final targetFile = File(join(dbPath, 'euton_hotel.db'));
+          final targetFile = File(join(dbPath, 'copy_app.db'));
           
           if (!mounted) return;
           final confirm = await showDialog<bool>(
@@ -175,7 +175,7 @@ Deliveries: KES ${report.deliveryRevenue.toStringAsFixed(0)}
               ),
               PopupMenuItem<String>(
                 value: 'Restore',
-                child: _MenuRow(icon: Icons.restore_page, iconColor: Colors.orange, label: 'Restore Database (from Euton Data)'),
+                child: _MenuRow(icon: Icons.restore_page, iconColor: Colors.orange, label: 'Restore Database (from CopyApp Data)'),
               ),
             ],
             onSelected: _handleMenuSelection,
@@ -207,8 +207,8 @@ Deliveries: KES ${report.deliveryRevenue.toStringAsFixed(0)}
                   mainAxisSpacing: 18,
                   crossAxisSpacing: 18,
                   children: [
-                    _StatCard(value: report.totalSales, label: 'Gross Revenue', icon: Icons.trending_up, iconColor: const Color(0xFF1FB7B8), tint: const Color(0xFFEAF9FB)),
-                    _StatCard(value: report.totalExpenses, label: 'Total Costs', icon: Icons.trending_down, iconColor: const Color(0xFFEB6E74), tint: const Color(0xFFFFEFF1)),
+                    _StatCard(value: report.amountSales, label: 'Gross Revenue', icon: Icons.trending_up, iconColor: const Color(0xFF1FB7B8), tint: const Color(0xFFEAF9FB)),
+                    _StatCard(value: report.amountExpenses, label: 'Total Costs', icon: Icons.trending_down, iconColor: const Color(0xFFEB6E74), tint: const Color(0xFFFFEFF1)),
                     _StatCard(value: report.mpesaIncome, label: 'M-Pesa Income', icon: Icons.phone_android, iconColor: const Color(0xFF4CAF50), tint: const Color(0xFFEAF8EA)),
                     _StatCard(value: report.cashOnHand, label: 'Cash on Hand', icon: Icons.account_balance_wallet_outlined, iconColor: const Color(0xFF5FA0EE), tint: const Color(0xFFECF5FF)),
                     _StatCard(value: report.eatInRevenue, label: 'Eat In Revenue', icon: Icons.restaurant, iconColor: const Color(0xFFF3A42B), tint: const Color(0xFFFFF3E4)),
@@ -383,8 +383,8 @@ class _HeroAnalyticsCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _HeroMetric(label: 'Gross Revenue', value: report.totalSales),
-              _HeroMetric(label: 'Total Costs', value: report.totalExpenses),
+              _HeroMetric(label: 'Gross Revenue', value: report.amountSales),
+              _HeroMetric(label: 'Total Costs', value: report.amountExpenses),
             ],
           ),
         ],
@@ -500,8 +500,8 @@ class _SalesSummaryTable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final totalQuantity = rows.fold<int>(0, (sum, row) => sum + ((row['quantity'] ?? 0) as num).toInt());
-    final totalAmount = rows.fold<double>(0.0, (sum, row) => sum + ((row['total'] ?? 0) as num).toDouble());
+    final amountQuantity = rows.fold<int>(0, (sum, row) => sum + ((row['quantity'] ?? 0) as num).toInt());
+    final amountAmount = rows.fold<double>(0.0, (sum, row) => sum + ((row['amount'] ?? 0) as num).toDouble());
 
     return _RoundedTable(
       headerColor: const Color(0xFF1B5E20),
@@ -512,11 +512,11 @@ class _SalesSummaryTable extends StatelessWidget {
             (row) => [
               (row['item_name'] ?? '').toString().toLowerCase(),
               ((row['quantity'] ?? 0) as num).toInt().toString(),
-              'KES ${((row['total'] ?? 0) as num).toDouble().toStringAsFixed(0)}',
+              'KES ${((row['amount'] ?? 0) as num).toDouble().toStringAsFixed(0)}',
             ],
           )
           .toList(),
-      totalRow: ['TOTAL', '$totalQuantity', 'KES ${totalAmount.toStringAsFixed(0)}'],
+      amountRow: ['TOTAL', '$amountQuantity', 'KES ${amountAmount.toStringAsFixed(0)}'],
       amountColor: const Color(0xFF1B5E20),
     );
   }
@@ -529,7 +529,7 @@ class _ExpenseSummaryTable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final totalAmount = expenses.fold<double>(0.0, (sum, expense) => sum + expense.amount);
+    final amountAmount = expenses.fold<double>(0.0, (sum, expense) => sum + expense.amount);
 
     return _RoundedTable(
       headerColor: const Color(0xFFFF4336),
@@ -543,7 +543,7 @@ class _ExpenseSummaryTable extends StatelessWidget {
             ],
           )
           .toList(),
-      totalRow: ['TOTAL', 'KES ${totalAmount.toStringAsFixed(0)}'],
+      amountRow: ['TOTAL', 'KES ${amountAmount.toStringAsFixed(0)}'],
       amountColor: const Color(0xFFD93D53),
     );
   }
@@ -555,7 +555,7 @@ class _RoundedTable extends StatelessWidget {
     required this.footerColor,
     required this.columns,
     required this.rows,
-    required this.totalRow,
+    required this.amountRow,
     required this.amountColor,
   });
 
@@ -563,7 +563,7 @@ class _RoundedTable extends StatelessWidget {
   final Color footerColor;
   final List<String> columns;
   final List<List<String>> rows;
-  final List<String> totalRow;
+  final List<String> amountRow;
   final Color amountColor;
 
   @override
@@ -611,15 +611,15 @@ class _RoundedTable extends StatelessWidget {
                 children: [
                   Expanded(
                     flex: columns.length == 3 ? 3 : 4,
-                    child: Text(totalRow[0], style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+                    child: Text(amountRow[0], style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
                   ),
                   if (columns.length == 3)
                     Expanded(
-                      child: Text(totalRow[1], textAlign: TextAlign.center, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+                      child: Text(amountRow[1], textAlign: TextAlign.center, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
                     ),
                   Expanded(
                     flex: 2,
-                    child: Text(totalRow.last, textAlign: TextAlign.right, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: amountColor)),
+                    child: Text(amountRow.last, textAlign: TextAlign.right, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: amountColor)),
                   ),
                 ],
               ),
@@ -728,7 +728,7 @@ class _TopItemsList extends StatelessWidget {
                       Align(
                         alignment: Alignment.centerLeft,
                         child: Text(
-                          '${(percent * 100).toStringAsFixed(1)}% of total sold',
+                          '${(percent * 100).toStringAsFixed(1)}% of amount sold',
                           style: const TextStyle(color: Color(0xFF8C8C8C), fontSize: 15),
                         ),
                       ),

@@ -1,5 +1,5 @@
-name: felix_app
-description: "Felix Pinski Premium - High-performance mobile application shell."
+name: natty_gym_pos
+description: "Natty Gym POS - Reception Application"
 publish_to: 'none'
 
 # The following defines the version and build number for your application.
@@ -14,7 +14,7 @@ publish_to: 'none'
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.1.0+2
+version: 1.2.0+3
 
 environment:
   sdk: ^3.11.3

@@ -14,7 +14,7 @@ class ExportService {
     final pdf = await _generatePdf(summary, periodLabel);
     await Printing.layoutPdf(
       onLayout: (PdfPageFormat format) async => pdf.save(),
-      name: 'Euton_Operations_Report_$periodLabel.pdf',
+      name: 'CopyApp_Operations_Report_$periodLabel.pdf',
     );
   }
 
@@ -23,7 +23,7 @@ class ExportService {
     final bytes = await pdf.save();
     
     final dir = await getTemporaryDirectory();
-    final file = File('${dir.path}/Euton_Operations_Report_$periodLabel.pdf');
+    final file = File('${dir.path}/CopyApp_Operations_Report_$periodLabel.pdf');
     await file.writeAsBytes(bytes);
 
     await Share.shareXFiles([XFile(file.path)], text: 'Operations Report for $periodLabel');
@@ -33,11 +33,11 @@ class ExportService {
     List<List<dynamic>> rows = [
       ['Metric', 'Value'],
       ['Period', periodLabel],
-      ['Total Sales', summary.totalSales],
+      ['Total Sales', summary.amountSales],
       ['Net Profit', summary.netProfit],
       ['Cash Revenue', summary.cashOnHand],
       ['M-Pesa Revenue', summary.mpesaIncome],
-      ['Total Expenses', summary.totalExpenses],
+      ['Total Expenses', summary.amountExpenses],
       ['Total Orders', summary.orderCount],
       ['Deliveries Revenue', summary.deliveryRevenue],
       ['Eat In Revenue', summary.eatInRevenue],
@@ -45,7 +45,7 @@ class ExportService {
 
     String csvData = rows.map((row) => row.join(',')).join('\n');
     final dir = await getTemporaryDirectory();
-    final file = File('${dir.path}/Euton_Operations_Report_$periodLabel.csv');
+    final file = File('${dir.path}/CopyApp_Operations_Report_$periodLabel.csv');
     await file.writeAsString(csvData);
 
     await Share.shareXFiles([XFile(file.path)], text: 'Operations CSV Report for $periodLabel');
@@ -53,14 +53,14 @@ class ExportService {
 
   static Future<void> shareDbFile() async {
     final dbPath = await getDatabasesPath();
-    final path = join(dbPath, 'euton_hotel.db');
+    final path = join(dbPath, 'copy_app.db');
     final file = File(path);
     
     if (await file.exists()) {
       final dir = await getTemporaryDirectory();
-      final tempFile = File('${dir.path}/euton_hotel_export.db');
+      final tempFile = File('${dir.path}/copy_app_export.db');
       await file.copy(tempFile.path);
-      await Share.shareXFiles([XFile(tempFile.path)], text: 'Euton Hotel Database Export');
+      await Share.shareXFiles([XFile(tempFile.path)], text: 'Copy App Database Export');
     }
   }
 
@@ -86,7 +86,7 @@ class ExportService {
                     pw.Column(
                       crossAxisAlignment: pw.CrossAxisAlignment.start,
                       children: [
-                        pw.Text('Euton Hotel', style: pw.TextStyle(fontSize: 28, fontWeight: pw.FontWeight.bold, color: PdfColors.green800)),
+                        pw.Text('Copy App', style: pw.TextStyle(fontSize: 28, fontWeight: pw.FontWeight.bold, color: PdfColors.green800)),
                         pw.Text('Operations Report', style: pw.TextStyle(fontSize: 18, color: PdfColors.grey700)),
                         pw.SizedBox(height: 8),
                         pw.Text('Period: $periodLabel', style: pw.TextStyle(fontSize: 14)),
@@ -98,11 +98,11 @@ class ExportService {
                 ),
                 pw.SizedBox(height: 40),
                 pw.Header(level: 1, child: pw.Text('Financial Summary')),
-                _buildTableRow('Total Sales', 'KES ${summary.totalSales.toStringAsFixed(2)}'),
+                _buildTableRow('Total Sales', 'KES ${summary.amountSales.toStringAsFixed(2)}'),
                 _buildTableRow('Net Profit', 'KES ${summary.netProfit.toStringAsFixed(2)}', isBold: true),
                 _buildTableRow('Cash on Hand', 'KES ${summary.cashOnHand.toStringAsFixed(2)}'),
                 _buildTableRow('M-Pesa Income', 'KES ${summary.mpesaIncome.toStringAsFixed(2)}'),
-                _buildTableRow('Total Expenses', 'KES ${summary.totalExpenses.toStringAsFixed(2)}'),
+                _buildTableRow('Total Expenses', 'KES ${summary.amountExpenses.toStringAsFixed(2)}'),
                 pw.SizedBox(height: 20),
                 pw.Header(level: 1, child: pw.Text('Operational Metrics')),
                 _buildTableRow('Total Orders', '${summary.orderCount}'),

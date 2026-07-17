@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:fl_chart/fl_chart.dart';
 import '../../core/theme/nexus_theme.dart';
 import '../../core/widgets/common/nexus_card.dart';
 import '../../core/services/nexus_api.dart';
@@ -40,8 +41,8 @@ class _GodModeScreenState extends State<GodModeScreen> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
+    final textPrimary = isDark ? NexusTheme.textPrimary : NexusTheme.lightTextPrimary;
     final textSecondary = isDark ? NexusTheme.textSecondary : NexusTheme.lightTextSecondary;
-    final borderSideColor = isDark ? NexusTheme.border : NexusTheme.lightBorder;
 
     if (_isLoading) {
       return Center(child: CircularProgressIndicator(color: theme.primaryColor));
@@ -62,38 +63,64 @@ class _GodModeScreenState extends State<GodModeScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // ── Top Greeting Header ───────────────────
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('CEO GOD MODE', style: theme.textTheme.displayLarge),
+                  Text(
+                    'Arafat Nayeem (CEO)',
+                    style: TextStyle(color: textPrimary, fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
                   const SizedBox(height: 4),
-                  Text('Unified operating command dashboard for Mobawi Inc.', style: theme.textTheme.bodyMedium),
+                  Text(
+                    'Welcome back to Mobawi Nexus 👋',
+                    style: TextStyle(color: textSecondary, fontSize: 12),
+                  ),
                 ],
               ),
+              CircleAvatar(
+                backgroundColor: theme.primaryColor.withValues(alpha: 0.1),
+                radius: 18,
+                child: Icon(Icons.shield_outlined, color: theme.primaryColor, size: 16),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          const Divider(),
+          const SizedBox(height: 24),
+
+          // ── Dashboard Title Row ──────────────────
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Dashboard',
+                style: theme.textTheme.displayMedium?.copyWith(fontSize: 24, fontWeight: FontWeight.bold),
+              ),
               ElevatedButton.icon(
-                onPressed: () => _loadOverview(),
-                icon: const Icon(Icons.refresh, size: 16),
-                label: const Text('Sync Operations'),
+                onPressed: () => widget.onNavigate('settings'),
+                icon: const Icon(Icons.add, size: 16, color: Colors.white),
+                label: const Text('Create workspace', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.white)),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: theme.cardColor,
-                  foregroundColor: theme.primaryColor,
-                  side: BorderSide(color: borderSideColor),
+                  backgroundColor: theme.primaryColor,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: 24),
 
-          // 4 Grid KPI Cards
+          // ── 4 KPI Grid Cards ──────────────────────
           GridView.count(
             crossAxisCount: MediaQuery.of(context).size.width > 1200 ? 4 : 2,
             shrinkWrap: true,
-            crossAxisSpacing: 24,
-            mainAxisSpacing: 24,
-            childAspectRatio: 1.6,
+            crossAxisSpacing: 20,
+            mainAxisSpacing: 20,
+            childAspectRatio: 1.65,
             physics: const NeverScrollableScrollPhysics(),
             children: [
               KpiCard(
@@ -120,6 +147,8 @@ class _GodModeScreenState extends State<GodModeScreen> {
                 subtitle: 'Railway + Cloudflare health',
                 icon: Icons.speed_outlined,
                 iconColor: NexusTheme.success,
+                trend: 'Online',
+                isTrendPositive: true,
                 onTap: () => widget.onNavigate('command_center'),
               ),
               KpiCard(
@@ -132,9 +161,124 @@ class _GodModeScreenState extends State<GodModeScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: 24),
 
-          // Two Column Widgets
+          // ── Double Charts Row (Fillio layout style) ──
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: NexusCard(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text('New Workspaces Onboarded', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                          TextButton(onPressed: () {}, child: const Text('7D', style: TextStyle(fontSize: 11))),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        height: 180,
+                        child: LineChart(
+                          LineChartData(
+                            gridData: const FlGridData(show: false),
+                            titlesData: const FlTitlesData(
+                              leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                              topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                              rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                              bottomTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                            ),
+                            borderData: FlBorderData(show: false),
+                            lineBarsData: [
+                              LineChartBarData(
+                                spots: const [
+                                  FlSpot(0, 1),
+                                  FlSpot(1, 1.5),
+                                  FlSpot(2, 1.2),
+                                  FlSpot(3, 2.2),
+                                  FlSpot(4, 2.0),
+                                  FlSpot(5, 3.1),
+                                  FlSpot(6, 4.0),
+                                ],
+                                isCurved: true,
+                                color: theme.primaryColor,
+                                barWidth: 3,
+                                dotData: const FlDotData(show: true),
+                                belowBarData: BarAreaData(
+                                  show: true,
+                                  color: theme.primaryColor.withValues(alpha: 0.1),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(width: 20),
+              Expanded(
+                child: NexusCard(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text('API Traffic Load', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                          TextButton(onPressed: () {}, child: const Text('7D', style: TextStyle(fontSize: 11))),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        height: 180,
+                        child: LineChart(
+                          LineChartData(
+                            gridData: const FlGridData(show: false),
+                            titlesData: const FlTitlesData(
+                              leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                              topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                              rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                              bottomTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                            ),
+                            borderData: FlBorderData(show: false),
+                            lineBarsData: [
+                              LineChartBarData(
+                                spots: const [
+                                  FlSpot(0, 10),
+                                  FlSpot(1, 18),
+                                  FlSpot(2, 15),
+                                  FlSpot(3, 28),
+                                  FlSpot(4, 22),
+                                  FlSpot(5, 34),
+                                  FlSpot(6, 32),
+                                ],
+                                isCurved: true,
+                                color: NexusTheme.accentSecondary,
+                                barWidth: 3,
+                                dotData: const FlDotData(show: true),
+                                belowBarData: BarAreaData(
+                                  show: true,
+                                  color: NexusTheme.accentSecondary.withValues(alpha: 0.1),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+
+          // ── Two Column Bottom Content: Workspaces & Actions ──
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -144,34 +288,28 @@ class _GodModeScreenState extends State<GodModeScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text('Active Service Infrastructure Status', style: theme.textTheme.headlineMedium),
-                          const Icon(Icons.circle, color: NexusTheme.success, size: 10),
-                        ],
-                      ),
-                      const SizedBox(height: 24),
-                      _buildServiceStatusRow(context, 'Railway Backend API', 'Operational', '99.998% Uptime', NexusTheme.success),
-                      _buildServiceStatusRow(context, 'PostgreSQL Core DB', 'Healthy', '12ms Latency', NexusTheme.success),
-                      _buildServiceStatusRow(context, 'Cloudflare DNS Edge', 'Online', 'Fastest Propagation', NexusTheme.success),
-                      _buildServiceStatusRow(context, 'Google Gemini AI Adapter', 'Connected', 'Google Cloud Platform', NexusTheme.success),
+                      Text('System Tasks & Active Workspaces', style: theme.textTheme.headlineMedium),
+                      const SizedBox(height: 16),
+                      // Workspace Table structure
+                      _buildWorkspaceItem('Natty Gym POS', 'ACTIVE', 'HOTEL / SPORTS', 'Priority HIGH'),
+                      _buildWorkspaceItem('Dionamax Pharmacy', 'ACTIVE', 'HEALTHCARE', 'Priority HIGH'),
+                      _buildWorkspaceItem('Rongai Quick POS', 'SUSPENDED', 'RETAIL', 'Priority LOW'),
                     ],
                   ),
                 ),
               ),
-              const SizedBox(width: 24),
+              const SizedBox(width: 20),
               Expanded(
                 flex: 2,
                 child: NexusCard(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('System Tasks & Actions', style: theme.textTheme.headlineMedium),
-                      const SizedBox(height: 24),
-                      _buildQuickAction(context, 'Deploy Latest Release', Icons.rocket_launch_outlined, () => widget.onNavigate('deployments'), textSecondary),
-                      _buildQuickAction(context, 'Review Incident Logs', Icons.terminal_outlined, () => widget.onNavigate('command_center'), textSecondary),
-                      _buildQuickAction(context, 'Manage Customer Accounts', Icons.business_outlined, () => widget.onNavigate('customers'), textSecondary),
+                      Text('SaaS Commands', style: theme.textTheme.headlineMedium),
+                      const SizedBox(height: 16),
+                      _buildQuickAction(context, 'Deploy Latest Build', Icons.rocket_launch_outlined, () => widget.onNavigate('deployments'), textSecondary),
+                      _buildQuickAction(context, 'Security Log Center', Icons.shield_outlined, () => widget.onNavigate('security'), textSecondary),
+                      _buildQuickAction(context, 'Environment Settings', Icons.settings_outlined, () => widget.onNavigate('settings'), textSecondary),
                     ],
                   ),
                 ),
@@ -183,25 +321,43 @@ class _GodModeScreenState extends State<GodModeScreen> {
     );
   }
 
-  Widget _buildServiceStatusRow(BuildContext context, String name, String status, String metric, Color color) {
-    final theme = Theme.of(context);
-    return Padding(
+  Widget _buildWorkspaceItem(String name, String status, String type, String priority) {
+    final isActive = status == 'ACTIVE';
+    final statusColor = isActive ? NexusTheme.success : NexusTheme.warning;
+
+    return Container(
       padding: const EdgeInsets.symmetric(vertical: 12.0),
+      decoration: const BoxDecoration(
+        border: Border(bottom: BorderSide(color: Colors.white10)),
+      ),
       child: Row(
         children: [
-          Icon(Icons.fiber_manual_record, color: color, size: 12),
+          CircleAvatar(
+            backgroundColor: statusColor.withValues(alpha: 0.1),
+            radius: 16,
+            child: Icon(Icons.business_outlined, color: statusColor, size: 14),
+          ),
           const SizedBox(width: 16),
-          Expanded(child: Text(name, style: theme.textTheme.titleLarge?.copyWith(fontSize: 14))),
-          Text(metric, style: theme.textTheme.labelLarge),
-          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                Text('$type · $priority', style: const TextStyle(color: NexusTheme.textMuted, fontSize: 11)),
+              ],
+            ),
+          ),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
+              color: statusColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(6),
-              border: Border.all(color: color.withValues(alpha: 0.3)),
+              border: Border.all(color: statusColor.withValues(alpha: 0.3)),
             ),
-            child: Text(status, style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.bold)),
+            child: Text(
+              status,
+              style: TextStyle(color: statusColor, fontSize: 10, fontWeight: FontWeight.bold),
+            ),
           ),
         ],
       ),

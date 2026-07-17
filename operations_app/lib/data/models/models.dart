@@ -1,8 +1,7 @@
 export 'expense.dart';
-export 'menu_item.dart';
-export 'order.dart';
-export 'order_item.dart';
-export 'outside_order.dart';
+export 'product.dart';
+export 'sale.dart';
+export 'sale_item.dart';
 export 'sync_item.dart';
 
 class InventoryItem {

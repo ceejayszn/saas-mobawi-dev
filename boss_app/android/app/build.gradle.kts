@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.boss_app"
+    namespace = "com.mobawi.copy_boss"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -21,7 +21,7 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.boss_app"
+        applicationId = "com.mobawi.copy_boss"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
@@ -43,7 +43,7 @@ android {
         variant.outputs
             .map { it as com.android.build.gradle.internal.api.BaseVariantOutputImpl }
             .forEach { output ->
-                val appName = "euton-boss"
+                val appName = "copy-boss"
                 val buildType = variant.buildType.name
                 output.outputFileName = "$appName-$buildType.apk"
             }

@@ -1,20 +1,20 @@
 import '../db/database_helper.dart';
-import '../models/menu_item.dart';
+import '../models/product.dart';
 import 'i_menu_repository.dart';
 
 class LocalMenuRepository implements IMenuRepository {
   @override
-  Future<String> insertMenuItem(MenuItem item) async {
-    return await DatabaseHelper.instance.insertMenuItem(item);
+  Future<String> insertProduct(Product item) async {
+    return await DatabaseHelper.instance.insertProduct(item);
   }
 
   @override
-  Future<List<MenuItem>> getMenuItems() async {
-    return await DatabaseHelper.instance.getMenuItems();
+  Future<List<Product>> getProducts() async {
+    return await DatabaseHelper.instance.getProducts();
   }
 
   @override
-  Future<int> updateMenuItem(MenuItem item) async {
-    return await DatabaseHelper.instance.updateMenuItem(item);
+  Future<int> updateProduct(Product item) async {
+    return await DatabaseHelper.instance.updateProduct(item);
   }
 }

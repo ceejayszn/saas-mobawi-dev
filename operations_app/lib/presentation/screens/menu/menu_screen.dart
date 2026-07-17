@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../providers/menu_provider.dart';
+import '../../providers/product_provider.dart';
 import '../../widgets/custom_widgets.dart';
 
 class MenuScreen extends StatelessWidget {
@@ -18,7 +18,7 @@ class MenuScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: Consumer<MenuProvider>(
+      body: Consumer<ProductProvider>(
         builder: (context, menu, child) {
           if (menu.isLoading) return const Center(child: CircularProgressIndicator());
           
@@ -159,7 +159,7 @@ class MenuScreen extends StatelessWidget {
               width: 120,
               onTap: () {
                 if (nameController.text.isNotEmpty && priceController.text.isNotEmpty) {
-                  context.read<MenuProvider>().addMenuItem(
+                  context.read<ProductProvider>().addProduct(
                     nameController.text,
                     double.parse(priceController.text),
                   );

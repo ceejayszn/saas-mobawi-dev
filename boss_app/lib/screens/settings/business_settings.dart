@@ -32,7 +32,7 @@ class _BusinessSettingsState extends State<BusinessSettings> {
   }
 
   Future<void> _loadSettings() async {
-    _nameCtrl.text = await SecureStorage.getString(AppConstants.keyBusinessName) ?? 'Euton Hotel';
+    _nameCtrl.text = await SecureStorage.getString(AppConstants.keyBusinessName) ?? 'Copy App';
     _selectedType = await SecureStorage.getString(AppConstants.keyBusinessType) ?? AppConstants.businessTypes[0];
     _subgroup = await SecureStorage.getString(AppConstants.keyBusinessSubgroup) ?? '';
     _addressCtrl.text = await SecureStorage.getString(AppConstants.keyBusinessAddress) ?? '';
