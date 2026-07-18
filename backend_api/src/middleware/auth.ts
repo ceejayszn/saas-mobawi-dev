@@ -11,12 +11,17 @@ export interface AuthenticatedRequest extends Request {
   };
 }
 
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
+
 /**
  * JWT authentication middleware.
  * Verifies the Bearer token and attaches decoded user info to the request.
  * Rejects with 401 if token is missing, expired, or invalid.
+ * Rejects with 403 if the business is suspended.
  */
-export function requireAuth(req: AuthenticatedRequest, res: Response, next: NextFunction): void {
+export async function requireAuth(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -44,6 +49,17 @@ export function requireAuth(req: AuthenticatedRequest, res: Response, next: Next
       businessId: decoded.businessId,
       role: decoded.role as 'admin' | 'manager' | 'cashier' | 'nexus_admin',
     };
+
+    if (req.user.role !== 'nexus_admin') {
+      const business = await prisma.business.findUnique({
+        where: { id: req.user.businessId },
+        select: { status: true }
+      });
+      if (business && business.status === 'SUSPENDED') {
+        res.status(403).json({ error: 'Subscription Locked. Contact Mobawi Nexus Administration.' });
+        return;
+      }
+    }
 
     next();
   } catch (err) {

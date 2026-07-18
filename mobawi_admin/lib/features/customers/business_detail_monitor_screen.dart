@@ -111,6 +111,61 @@ class _BusinessDetailMonitorScreenState extends State<BusinessDetailMonitorScree
             ),
           ],
         ),
+        actions: [
+          if (widget.business['status'] == 'ACTIVE')
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              child: ElevatedButton.icon(
+                onPressed: () async {
+                  final confirmed = await showDialog<bool>(
+                    context: context,
+                    builder: (ctx) => AlertDialog(
+                      title: const Text('Suspend Workspace?'),
+                      content: const Text('This will immediately block all API access, POS syncs, and Manager logins for this business. Are you sure?'),
+                      actions: [
+                        TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(backgroundColor: NexusTheme.error),
+                          onPressed: () => Navigator.pop(ctx, true), 
+                          child: const Text('Suspend', style: TextStyle(color: Colors.white)),
+                        ),
+                      ],
+                    ),
+                  );
+                  if (confirmed == true && widget.business['id'] != null) {
+                    final success = await _api.suspendBusiness(widget.business['id']);
+                    if (success) {
+                      setState(() {
+                        widget.business['status'] = 'SUSPENDED';
+                      });
+                    }
+                  }
+                },
+                icon: const Icon(Icons.lock_outline, color: Colors.white, size: 16),
+                label: const Text('Suspend App', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                style: ElevatedButton.styleFrom(backgroundColor: NexusTheme.error),
+              ),
+            )
+          else
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              child: ElevatedButton.icon(
+                onPressed: () async {
+                  if (widget.business['id'] != null) {
+                    final success = await _api.activateBusiness(widget.business['id']);
+                    if (success) {
+                      setState(() {
+                        widget.business['status'] = 'ACTIVE';
+                      });
+                    }
+                  }
+                },
+                icon: const Icon(Icons.lock_open_outlined, color: Colors.white, size: 16),
+                label: const Text('Activate App', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                style: ElevatedButton.styleFrom(backgroundColor: NexusTheme.success),
+              ),
+            ),
+        ],
         bottom: TabBar(
           controller: _tabController,
           indicatorColor: theme.primaryColor,

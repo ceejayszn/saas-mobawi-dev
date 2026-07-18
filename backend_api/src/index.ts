@@ -38,9 +38,17 @@ app.post('/api/auth/login', async (req, res) => {
     return;
   }
   try {
-    const user = await prisma.user.findUnique({ where: { username } });
+    const user = await prisma.user.findUnique({ 
+      where: { username },
+      include: { business: true }
+    });
     if (!user || !user.isActive) {
       res.status(401).json({ error: 'Invalid username or password.' });
+      return;
+    }
+
+    if (user.role !== 'nexus_admin' && user.business?.status === 'SUSPENDED') {
+      res.status(403).json({ error: 'Subscription Locked. Contact Mobawi Nexus Administration.' });
       return;
     }
     
@@ -949,6 +957,56 @@ app.get('/api/admin/businesses', requireAuth, requireNexusAdmin, async (req, res
     res.json(businesses);
   } catch (error) {
     res.status(500).json({ error: sanitizeError(error) });
+  }
+});
+
+app.post('/api/admin/businesses/:id/suspend', requireAuth, requireNexusAdmin, async (req: AuthenticatedRequest, res) => {
+  const id = req.params.id as string;
+  try {
+    const business = await prisma.business.update({
+      where: { id },
+      data: { status: 'SUSPENDED' }
+    });
+    
+    // Log the suspension activity
+    await prisma.activityLog.create({
+      data: {
+        user: req.user?.userId || 'admin',
+        device: 'Nexus God Mode',
+        action: 'Suspend Business Workspace',
+        result: 'SUCCESS',
+        businessId: id,
+      }
+    });
+    
+    res.json({ success: true, message: 'Business workspace suspended.', business });
+  } catch (error) {
+    res.status(500).json({ success: false, error: sanitizeError(error) });
+  }
+});
+
+app.post('/api/admin/businesses/:id/activate', requireAuth, requireNexusAdmin, async (req: AuthenticatedRequest, res) => {
+  const id = req.params.id as string;
+  try {
+    const business = await prisma.business.update({
+      where: { id },
+      data: { status: 'ACTIVE' }
+    });
+    
+    // Log the activation activity
+    await prisma.activityLog.create({
+      data: {
+        user: req.user?.userId || 'admin',
+        device: 'Nexus God Mode',
+        action: 'Activate Business Workspace',
+        result: 'SUCCESS',
+        businessId: id,
+      }
+    });
+    
+    res.json({ success: true, message: 'Business workspace activated.', business });
+  } catch (error) {
+    res.status(500).json({ success: false, error: sanitizeError(error) });
   }
 });
 

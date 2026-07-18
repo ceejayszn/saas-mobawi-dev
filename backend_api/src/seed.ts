@@ -6,23 +6,31 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('Seeding database...');
 
-  // 1. Create or verify Business 'felixpinski'
-  let business = await prisma.business.findUnique({
-    where: { id: 'felixpinski' },
-  });
+  const businesses = [
+    { id: 'felixpinski', name: 'Copy App', type: 'HOTEL' },
+    { id: 'natty_gym', name: 'Natty Gym', type: 'GYM' },
+    { id: 'delights_juice_shop', name: 'Delights Juice Shop', type: 'RESTAURANT' },
+    { id: 'base_application', name: 'Base Application', type: 'RETAIL' },
+  ];
 
-  if (!business) {
-    business = await prisma.business.create({
-      data: {
-        id: 'felixpinski',
-        name: 'Copy App',
-        type: 'HOTEL',
-        status: 'ACTIVE',
-      },
+  for (const b of businesses) {
+    let business = await prisma.business.findUnique({
+      where: { id: b.id },
     });
-    console.log(`Created Business: ${business.name} (${business.id})`);
-  } else {
-    console.log(`Business ${business.name} already exists.`);
+
+    if (!business) {
+      business = await prisma.business.create({
+        data: {
+          id: b.id,
+          name: b.name,
+          type: b.type,
+          status: 'ACTIVE',
+        },
+      });
+      console.log(`Created Business: ${business.name} (${business.id})`);
+    } else {
+      console.log(`Business ${business.name} already exists.`);
+    }
   }
 
   // 2. Create Users
@@ -31,17 +39,22 @@ async function main() {
       username: 'admin',
       password: 'kali',
       role: 'nexus_admin',
+      businessId: 'felixpinski', // Admin can be attached anywhere, or global if schema allows
     },
-    {
-      username: 'felixpinski_pos',
-      password: 'felixpinski_pos',
-      role: 'cashier',
-    },
-    {
-      username: 'felixpinski_boss',
-      password: '123456',
-      role: 'manager',
-    },
+    ...businesses.flatMap((b) => [
+      {
+        username: `${b.id}_pos`,
+        password: `${b.id}_pos`,
+        role: 'cashier',
+        businessId: b.id,
+      },
+      {
+        username: `${b.id}_boss`,
+        password: '123456',
+        role: 'manager',
+        businessId: b.id,
+      },
+    ]),
   ];
 
   for (const u of usersToSeed) {
@@ -51,10 +64,6 @@ async function main() {
 
     if (!existingUser) {
       const salt = generateSalt();
-      // We will store the hashed password in "password" column.
-      // Wait, is there a salt column in the schema? Let's check requireAuth or User model.
-      // Schema model User only has "password" column. It doesn't have a separate "salt" column.
-      // To store salted hash when there is no salt column, we can store it as "salt:hash"!
       const hash = hashPassword(u.password, salt);
       const combined = `${salt}:${hash}`;
 
@@ -63,11 +72,11 @@ async function main() {
           username: u.username,
           password: combined,
           role: u.role,
-          businessId: 'felixpinski',
+          businessId: u.businessId,
           isActive: true,
         },
       });
-      console.log(`Created User: ${u.username} (Role: ${u.role})`);
+      console.log(`Created User: ${u.username} (Role: ${u.role}, Business: ${u.businessId})`);
     } else {
       console.log(`User ${u.username} already exists.`);
     }

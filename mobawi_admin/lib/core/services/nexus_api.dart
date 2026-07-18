@@ -248,6 +248,32 @@ class NexusApi {
     return [];
   }
 
+  Future<bool> suspendBusiness(String businessId) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$apiBaseUrl/api/admin/businesses/$businessId/suspend'),
+        headers: _headers,
+      ).timeout(const Duration(seconds: 3));
+      return response.statusCode == 200;
+    } catch (e) {
+      debugPrint('Suspend Business API failed: $e');
+    }
+    return false;
+  }
+
+  Future<bool> activateBusiness(String businessId) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$apiBaseUrl/api/admin/businesses/$businessId/activate'),
+        headers: _headers,
+      ).timeout(const Duration(seconds: 3));
+      return response.statusCode == 200;
+    } catch (e) {
+      debugPrint('Activate Business API failed: $e');
+    }
+    return false;
+  }
+
   Future<Map<String, dynamic>> fetchBusinessStatistics(String businessId) async {
     try {
       final response = await http.get(
