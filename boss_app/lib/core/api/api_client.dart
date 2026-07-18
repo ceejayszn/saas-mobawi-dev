@@ -8,7 +8,7 @@ class ApiClient {
   static final ApiClient instance = ApiClient._();
 
   final String baseUrl = 'https://mobawi-backend-api.onrender.com';
-  final String businessId = 'felixpinski';
+  final String businessId = 'natty_gym';
 
   String? _token;
 

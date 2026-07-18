@@ -41,7 +41,7 @@ class SyncService {
   SyncService._init();
 
   String baseUrl = 'https://mobawi-backend-api.onrender.com';
-  String businessId = 'felixpinski';
+  String businessId = 'natty_gym';
   bool _isSyncing = false;
   Timer? _syncTimer;
   String? _jwtToken;
