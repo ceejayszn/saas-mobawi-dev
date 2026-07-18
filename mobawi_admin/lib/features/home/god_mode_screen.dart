@@ -5,8 +5,6 @@ import '../../core/widgets/common/nexus_card.dart';
 import '../../core/services/nexus_api.dart';
 import '../../core/widgets/common/empty_state.dart';
 
-import '../../core/widgets/common/crm_kpi_card.dart';
-
 class GodModeScreen extends StatefulWidget {
   final Function(String) onNavigate;
 
@@ -70,305 +68,296 @@ class _GodModeScreenState extends State<GodModeScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Top Greeting Header ───────────────────
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Arafat Nayeem (CEO)',
-                    style: TextStyle(color: textPrimary, fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Welcome back to Mobawi Nexus 👋',
-                    style: TextStyle(color: textSecondary, fontSize: 12),
-                  ),
-                ],
-              ),
-              CircleAvatar(
-                backgroundColor: theme.primaryColor.withValues(alpha: 0.1),
-                radius: 18,
-                child: Icon(Icons.shield_outlined, color: theme.primaryColor, size: 16),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          const Divider(),
-          const SizedBox(height: 24),
-
-          // ── Dashboard Title Row ──────────────────
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          // ── Greeting Header (Stovest style) ───────────────────
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Dashboard',
-                style: theme.textTheme.displayMedium?.copyWith(fontSize: 24, fontWeight: FontWeight.bold),
+                'Welcome, Arafat',
+                style: TextStyle(color: textPrimary, fontSize: 28, fontWeight: FontWeight.w700),
               ),
-              ElevatedButton.icon(
-                onPressed: () => widget.onNavigate('settings'),
-                icon: const Icon(Icons.add, size: 16, color: Colors.white),
-                label: const Text('Create workspace', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.white)),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: theme.primaryColor,
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                ),
+              const SizedBox(height: 6),
+              Text(
+                "Here's your SaaS platform overview",
+                style: TextStyle(color: textSecondary, fontSize: 14),
               ),
             ],
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 32),
 
-          // ── 4 KPI Grid Cards ──────────────────────
-          GridView.count(
-            crossAxisCount: MediaQuery.of(context).size.width > 1200 ? 4 : 2,
-            shrinkWrap: true,
-            crossAxisSpacing: 20,
-            mainAxisSpacing: 20,
-            childAspectRatio: 1.65,
-            physics: const NeverScrollableScrollPhysics(),
-            children: [
-              CrmKpiCard(
-                title: 'Total Revenue (M-Pesa)',
-                value: 'KES ${_overview['revenue'] ?? '0.00'}',
-                trend: '+12.4% from yesterday',
-                icon: Icons.bar_chart_rounded,
-                baseColor: const Color(0xFFF97316), // Orange
-                onTap: () => widget.onNavigate('billing'),
-              ),
-              CrmKpiCard(
-                title: 'Platform Uptime',
-                value: '${_overview['uptime'] ?? '0.00'}%',
-                trend: '+0% from yesterday',
-                icon: Icons.article_outlined,
-                baseColor: const Color(0xFFEAB308), // Yellow
-                onTap: () => widget.onNavigate('command_center'),
-              ),
-              CrmKpiCard(
-                title: 'AI Executions',
-                value: '${_overview['ai_requests'] ?? 0}',
-                trend: '+5.2% from yesterday',
-                icon: Icons.local_offer_outlined,
-                baseColor: const Color(0xFF10B981), // Green
-                onTap: () => widget.onNavigate('ai_center'),
-              ),
-              CrmKpiCard(
-                title: 'Active Customers',
-                value: '${_overview['customers_count'] ?? 0}',
-                trend: '+1.5% from yesterday',
-                icon: Icons.person_outline,
-                baseColor: const Color(0xFF0EA5E9), // Cyan/Blue
-                onTap: () => widget.onNavigate('customers'),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-
-          // ── Double Charts Row (Fillio layout style) ──
+          // ── Top Row: Revenue & Quick Portfolio ──────────────────
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: NexusCard(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text('New Workspaces Onboarded', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                          TextButton(onPressed: () {}, child: const Text('7D', style: TextStyle(fontSize: 11))),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      SizedBox(
-                        height: 180,
-                        child: LineChart(
-                          LineChartData(
-                            gridData: const FlGridData(show: false),
-                            titlesData: const FlTitlesData(
-                              leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                              topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                              rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                              bottomTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                            ),
-                            borderData: FlBorderData(show: false),
-                            lineBarsData: [
-                              LineChartBarData(
-                                spots: const [
-                                  FlSpot(0, 1),
-                                  FlSpot(1, 1.5),
-                                  FlSpot(2, 1.2),
-                                  FlSpot(3, 2.2),
-                                  FlSpot(4, 2.0),
-                                  FlSpot(5, 3.1),
-                                  FlSpot(6, 4.0),
-                                ],
-                                isCurved: true,
-                                color: theme.primaryColor,
-                                barWidth: 3,
-                                dotData: const FlDotData(show: true),
-                                belowBarData: BarAreaData(
-                                  show: true,
-                                  color: theme.primaryColor.withValues(alpha: 0.1),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(width: 20),
-              Expanded(
-                child: NexusCard(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text('API Traffic Load', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                          TextButton(onPressed: () {}, child: const Text('7D', style: TextStyle(fontSize: 11))),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      SizedBox(
-                        height: 180,
-                        child: LineChart(
-                          LineChartData(
-                            gridData: const FlGridData(show: false),
-                            titlesData: const FlTitlesData(
-                              leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                              topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                              rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                              bottomTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                            ),
-                            borderData: FlBorderData(show: false),
-                            lineBarsData: [
-                              LineChartBarData(
-                                spots: const [
-                                  FlSpot(0, 10),
-                                  FlSpot(1, 18),
-                                  FlSpot(2, 15),
-                                  FlSpot(3, 28),
-                                  FlSpot(4, 22),
-                                  FlSpot(5, 34),
-                                  FlSpot(6, 32),
-                                ],
-                                isCurved: true,
-                                color: NexusTheme.accentSecondary,
-                                barWidth: 3,
-                                dotData: const FlDotData(show: true),
-                                belowBarData: BarAreaData(
-                                  show: true,
-                                  color: NexusTheme.accentSecondary.withValues(alpha: 0.1),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-
-          // ── Two Column Bottom Content: Workspaces & Actions ──
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                flex: 3,
-                child: NexusCard(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('System Tasks & Active Workspaces', style: theme.textTheme.headlineMedium),
-                      const SizedBox(height: 16),
-                      // Workspace Table structure
-                      if (_applications.isEmpty)
-                        const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 16.0),
-                          child: Text('No active workspaces found. Waiting for client telemetry...', style: TextStyle(color: Colors.grey)),
-                        )
-                      else
-                        ..._applications.map((app) => _buildWorkspaceItem(
-                          app['name']?.toString() ?? 'Unknown App',
-                          app['onlineStatus']?.toString() ?? 'OFFLINE',
-                          app['platform']?.toString() ?? 'SYSTEM',
-                          'v${app['version'] ?? '1.0'}',
-                        )),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(width: 20),
+              // Total Holding Card
               Expanded(
                 flex: 2,
                 child: NexusCard(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('SaaS Commands', style: theme.textTheme.headlineMedium),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text('Total Revenue', style: TextStyle(color: textSecondary, fontSize: 14)),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: theme.scaffoldBackgroundColor,
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(color: theme.dividerColor),
+                            ),
+                            child: Row(
+                              children: [
+                                Text('6M', style: TextStyle(color: textPrimary, fontSize: 12)),
+                                const SizedBox(width: 4),
+                                Icon(Icons.keyboard_arrow_down, size: 14, color: textSecondary),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+                      Text(
+                        'KES ${_overview['revenue'] ?? '0.00'}',
+                        style: TextStyle(color: textPrimary, fontSize: 36, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          const Text('Return', style: TextStyle(color: NexusTheme.textMuted, fontSize: 13)),
+                          const SizedBox(width: 8),
+                          Text(
+                            '+3.6% (\$ 532)',
+                            style: TextStyle(color: NexusTheme.success, fontSize: 13, fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(width: 20),
+              // My Portfolio (Active Workspaces)
+              Expanded(
+                flex: 3,
+                child: NexusCard(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text('Active Workspaces', style: TextStyle(color: textSecondary, fontSize: 14)),
+                          Row(
+                            children: [
+                              TextButton(
+                                onPressed: () => widget.onNavigate('customers'),
+                                style: TextButton.styleFrom(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                    side: BorderSide(color: theme.dividerColor),
+                                  ),
+                                ),
+                                child: Text('See all', style: TextStyle(color: textPrimary, fontSize: 12)),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                       const SizedBox(height: 16),
-                      _buildQuickAction(context, 'Deploy Latest Build', Icons.rocket_launch_outlined, () => widget.onNavigate('deployments'), textSecondary),
-                      _buildQuickAction(context, 'Security Log Center', Icons.shield_outlined, () => widget.onNavigate('security'), textSecondary),
-                      _buildQuickAction(context, 'Environment Settings', Icons.settings_outlined, () => widget.onNavigate('settings'), textSecondary),
+                      // Horizontal scroll of workspaces
+                      SizedBox(
+                        height: 110,
+                        child: _applications.isEmpty
+                            ? Center(child: Text('No active workspaces', style: TextStyle(color: textSecondary)))
+                            : ListView.builder(
+                                scrollDirection: Axis.horizontal,
+                                itemCount: _applications.length > 4 ? 4 : _applications.length,
+                                itemBuilder: (context, index) {
+                                  final app = _applications[index];
+                                  return _buildMiniPortfolioCard(
+                                    app['name']?.toString() ?? 'App',
+                                    app['onlineStatus'] == 'ACTIVE' ? 'ONLINE' : 'LOCKED',
+                                    app['platform']?.toString() ?? 'System',
+                                  );
+                                },
+                              ),
+                      ),
                     ],
                   ),
                 ),
               ),
             ],
           ),
-        ],
-      ),
-    );
-  }
+          const SizedBox(height: 24),
 
-  Widget _buildWorkspaceItem(String name, String status, String type, String priority) {
-    final isActive = status == 'ACTIVE';
-    final statusColor = isActive ? NexusTheme.success : NexusTheme.warning;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12.0),
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: Colors.white10)),
-      ),
-      child: Row(
-        children: [
-          CircleAvatar(
-            backgroundColor: statusColor.withValues(alpha: 0.1),
-            radius: 16,
-            child: Icon(Icons.business_outlined, color: statusColor, size: 14),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
+          // ── Main Chart (Portfolio Performance) ──────────────────
+          NexusCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                Text('$type · $priority', style: const TextStyle(color: NexusTheme.textMuted, fontSize: 11)),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('Platform Performance', style: TextStyle(color: textPrimary, fontSize: 16, fontWeight: FontWeight.w600)),
+                    Row(
+                      children: ['1D', '1W', '1M', '6M', '1Y'].map((label) {
+                        final isSelected = label == '6M';
+                        return Container(
+                          margin: const EdgeInsets.only(left: 8),
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: isSelected ? theme.primaryColor : Colors.transparent,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: isSelected ? theme.primaryColor : theme.dividerColor),
+                          ),
+                          child: Text(
+                            label,
+                            style: TextStyle(
+                              color: isSelected ? Colors.white : textSecondary,
+                              fontSize: 12,
+                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  height: 240,
+                  child: LineChart(
+                    LineChartData(
+                      gridData: FlGridData(
+                        show: true,
+                        drawVerticalLine: false,
+                        getDrawingHorizontalLine: (value) => FlLine(color: theme.dividerColor, strokeWidth: 1),
+                      ),
+                      titlesData: FlTitlesData(
+                        leftTitles: AxisTitles(
+                          sideTitles: SideTitles(
+                            showTitles: true,
+                            reservedSize: 40,
+                            getTitlesWidget: (value, meta) => Text(
+                              '${value.toInt()}k',
+                              style: TextStyle(color: textSecondary, fontSize: 10),
+                            ),
+                          ),
+                        ),
+                        bottomTitles: AxisTitles(
+                          sideTitles: SideTitles(
+                            showTitles: true,
+                            getTitlesWidget: (value, meta) {
+                              const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'];
+                              if (value >= 0 && value < months.length) {
+                                return Padding(
+                                  padding: const EdgeInsets.only(top: 8.0),
+                                  child: Text(months[value.toInt()], style: TextStyle(color: textSecondary, fontSize: 10)),
+                                );
+                              }
+                              return const Text('');
+                            },
+                          ),
+                        ),
+                        rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                        topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                      ),
+                      borderData: FlBorderData(show: false),
+                      lineBarsData: [
+                        LineChartBarData(
+                          spots: const [
+                            FlSpot(0, 10), FlSpot(1, 15), FlSpot(2, 13), FlSpot(3, 24), FlSpot(4, 20), FlSpot(5, 30), FlSpot(6, 35),
+                          ],
+                          isCurved: true,
+                          color: theme.primaryColor,
+                          barWidth: 3,
+                          dotData: FlDotData(show: false),
+                          belowBarData: BarAreaData(
+                            show: true,
+                            gradient: LinearGradient(
+                              colors: [
+                                theme.primaryColor.withValues(alpha: 0.3),
+                                theme.primaryColor.withValues(alpha: 0.0),
+                              ],
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: statusColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(6),
-              border: Border.all(color: statusColor.withValues(alpha: 0.3)),
-            ),
-            child: Text(
-              status,
-              style: TextStyle(color: statusColor, fontSize: 10, fontWeight: FontWeight.bold),
+          const SizedBox(height: 24),
+
+          // ── Bottom Table (Workspaces Overview) ──────────────────
+          NexusCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('Workspaces Overview', style: TextStyle(color: textPrimary, fontSize: 16, fontWeight: FontWeight.w600)),
+                    Row(
+                      children: ['All', 'Active', 'Suspended'].map((label) {
+                        final isSelected = label == 'All';
+                        return Container(
+                          margin: const EdgeInsets.only(left: 8),
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: isSelected ? theme.primaryColor : Colors.transparent,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: isSelected ? theme.primaryColor : theme.dividerColor),
+                          ),
+                          child: Text(
+                            label,
+                            style: TextStyle(
+                              color: isSelected ? Colors.white : textSecondary,
+                              fontSize: 12,
+                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                if (_applications.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 32.0),
+                    child: Center(child: Text('No active workspaces found.', style: TextStyle(color: textSecondary))),
+                  )
+                else
+                  Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                        child: Row(
+                          children: [
+                            Expanded(flex: 3, child: Text('Workspace', style: TextStyle(color: textSecondary, fontSize: 12))),
+                            Expanded(flex: 2, child: Text('Status', style: TextStyle(color: textSecondary, fontSize: 12))),
+                            Expanded(flex: 2, child: Text('Type', style: TextStyle(color: textSecondary, fontSize: 12))),
+                            Expanded(flex: 2, child: Text('Version', style: TextStyle(color: textSecondary, fontSize: 12))),
+                          ],
+                        ),
+                      ),
+                      const Divider(),
+                      ..._applications.map((app) => _buildWorkspaceTableRow(
+                            app['name']?.toString() ?? 'Unknown App',
+                            app['onlineStatus']?.toString() ?? 'OFFLINE',
+                            app['platform']?.toString() ?? 'SYSTEM',
+                            'v${app['version'] ?? '1.0'}',
+                          )),
+                    ],
+                  ),
+              ],
             ),
           ),
         ],
@@ -376,15 +365,80 @@ class _GodModeScreenState extends State<GodModeScreen> {
     );
   }
 
-  Widget _buildQuickAction(BuildContext context, String title, IconData icon, VoidCallback onTap, Color textSecondary) {
+  Widget _buildMiniPortfolioCard(String name, String status, String type) {
     final theme = Theme.of(context);
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: ListTile(
-        onTap: onTap,
-        leading: Icon(icon, color: theme.primaryColor),
-        title: Text(title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
-        trailing: Icon(Icons.arrow_forward_ios, size: 12, color: textSecondary),
+    final isOnline = status == 'ONLINE';
+    final statusColor = isOnline ? NexusTheme.success : NexusTheme.error;
+
+    return Container(
+      width: 140,
+      margin: const EdgeInsets.only(right: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: theme.scaffoldBackgroundColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: theme.dividerColor),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(status, style: TextStyle(color: statusColor, fontSize: 11, fontWeight: FontWeight.bold)),
+              Icon(Icons.business_outlined, color: NexusTheme.textMuted, size: 16),
+            ],
+          ),
+          const Spacer(),
+          Text(name, style: TextStyle(color: NexusTheme.textPrimary, fontSize: 14, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
+          const SizedBox(height: 4),
+          Text(type, style: TextStyle(color: NexusTheme.textMuted, fontSize: 11)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWorkspaceTableRow(String name, String status, String type, String version) {
+    final isActive = status == 'ACTIVE';
+    final statusColor = isActive ? NexusTheme.success : NexusTheme.error;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: Theme.of(context).dividerColor)),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            flex: 3,
+            child: Row(
+              children: [
+                CircleAvatar(
+                  backgroundColor: statusColor.withValues(alpha: 0.1),
+                  radius: 12,
+                  child: Icon(Icons.circle, color: statusColor, size: 10),
+                ),
+                const SizedBox(width: 12),
+                Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.white)),
+              ],
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(
+              status,
+              style: TextStyle(color: statusColor, fontSize: 12, fontWeight: FontWeight.bold),
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(type, style: const TextStyle(color: Colors.white, fontSize: 12)),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(version, style: TextStyle(color: NexusTheme.textSecondary, fontSize: 12)),
+          ),
+        ],
       ),
     );
   }

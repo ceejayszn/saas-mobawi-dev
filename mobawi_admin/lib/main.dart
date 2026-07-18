@@ -5,18 +5,11 @@ import 'core/widgets/common/command_palette.dart';
 import 'core/services/nexus_api.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-// Screens
 import 'features/home/god_mode_screen.dart';
 import 'features/command_center/command_center_screen.dart';
 import 'features/products/products_screen.dart';
 import 'features/customers/customers_screen.dart';
-import 'features/deployments/deployments_screen.dart';
-import 'features/infrastructure/infrastructure_screen.dart';
 import 'features/billing/billing_screen.dart';
-import 'features/security/security_screen.dart';
-import 'features/ai_center/ai_center_screen.dart';
-import 'features/assistant/ai_assistant_screen.dart';
-import 'features/website_center/website_center_screen.dart';
 import 'features/settings/settings_screen.dart';
 
 
@@ -108,23 +101,8 @@ class _NexusShellState extends State<NexusShell> {
         return ProductsScreen(onNavigate: (sec) => setState(() => _activeSection = sec));
       case 'customers':
         return CustomersScreen(onNavigate: (sec) => setState(() => _activeSection = sec));
-      case 'deployments':
-        return DeploymentsScreen(onNavigate: (sec) => setState(() => _activeSection = sec));
-      case 'updates':
-        return DeploymentsScreen(onNavigate: (sec) => setState(() => _activeSection = sec));
-      case 'infrastructure':
-        return InfrastructureScreen(onNavigate: (sec) => setState(() => _activeSection = sec));
       case 'billing':
         return BillingScreen(onNavigate: (sec) => setState(() => _activeSection = sec));
-
-      case 'security':
-        return SecurityScreen(onNavigate: (sec) => setState(() => _activeSection = sec));
-      case 'ai_center':
-        return AiCenterScreen(onNavigate: (sec) => setState(() => _activeSection = sec));
-      case 'ai_assistant':
-        return AiAssistantScreen(onNavigate: (sec) => setState(() => _activeSection = sec));
-      case 'website_center':
-        return WebsiteCenterScreen(onNavigate: (sec) => setState(() => _activeSection = sec));
       case 'settings':
         return SettingsScreen(onNavigate: (sec) => setState(() => _activeSection = sec));
       default:

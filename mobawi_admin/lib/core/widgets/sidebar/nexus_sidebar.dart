@@ -119,22 +119,17 @@ class NexusSidebar extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _navItem(context, label: 'Dashboard', icon: Icons.grid_view_rounded, section: 'god_mode', textPrimary: textPrimary, textSecondary: textSecondary),
-                  _navItem(context, label: 'Businesses', icon: Icons.business_outlined, section: 'customers', textPrimary: textPrimary, textSecondary: textSecondary),
-                  _navItem(context, label: 'Monitoring', icon: Icons.speed_outlined, section: 'command_center', textPrimary: textPrimary, textSecondary: textSecondary),
-                  _navItem(context, label: 'Products', icon: Icons.inventory_2_outlined, section: 'products', textPrimary: textPrimary, textSecondary: textSecondary),
-                  _navItem(context, label: 'Billing', icon: Icons.card_membership_outlined, section: 'billing', textPrimary: textPrimary, textSecondary: textSecondary),
-                  _navItem(context, label: 'Security', icon: Icons.shield_outlined, section: 'security', textPrimary: textPrimary, textSecondary: textSecondary),
-                  _navItem(context, label: 'Deployments', icon: Icons.rocket_launch_outlined, section: 'deployments', textPrimary: textPrimary, textSecondary: textSecondary),
-                  _navItem(context, label: 'AI Center', icon: Icons.psychology_outlined, section: 'ai_center', textPrimary: textPrimary, textSecondary: textSecondary),
-
-                  const SizedBox(height: 16),
-
-                  // PLATFORMS section label
+                  _navItem(context, label: 'Portfolio', icon: Icons.business_outlined, section: 'customers', textPrimary: textPrimary, textSecondary: textSecondary),
+                  _navItem(context, label: 'Analysis', icon: Icons.analytics_outlined, section: 'command_center', textPrimary: textPrimary, textSecondary: textSecondary),
+                  _navItem(context, label: 'Billing', icon: Icons.account_balance_wallet_outlined, section: 'billing', textPrimary: textPrimary, textSecondary: textSecondary),
+                  
+                  const SizedBox(height: 24),
+                  
                   if (!isCollapsed)
                     Padding(
                       padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
                       child: Text(
-                        'PLATFORMS',
+                        'Support',
                         style: TextStyle(
                           color: textMuted,
                           fontSize: 10,
@@ -144,9 +139,8 @@ class NexusSidebar extends StatelessWidget {
                       ),
                     ),
 
-                  _navItem(context, label: 'AI Assistant', icon: Icons.chat_bubble_outline_rounded, section: 'ai_assistant', textPrimary: textPrimary, textSecondary: textSecondary),
-                  _navItem(context, label: 'Integrations', icon: Icons.integration_instructions_outlined, section: 'website_center', textPrimary: textPrimary, textSecondary: textSecondary),
-                  _navItem(context, label: 'Developer', icon: Icons.code_rounded, section: 'infrastructure', textPrimary: textPrimary, textSecondary: textSecondary),
+                  _navItem(context, label: 'Community', icon: Icons.people_outline_rounded, section: 'community', textPrimary: textPrimary, textSecondary: textSecondary, onTapOverride: () {}),
+                  _navItem(context, label: 'Help & Support', icon: Icons.help_outline_rounded, section: 'support', textPrimary: textPrimary, textSecondary: textSecondary, onTapOverride: () {}),
                 ],
               ),
             ),
@@ -183,49 +177,47 @@ class NexusSidebar extends StatelessWidget {
     VoidCallback? onTapOverride,
   }) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     final isSelected = activeSection == section;
-    final selectedBg = isDark
-        ? theme.primaryColor.withValues(alpha: 0.12)
-        : theme.primaryColor.withValues(alpha: 0.08);
-    final selectedIcon = theme.primaryColor;
+    final selectedBg = theme.primaryColor;
+    final selectedIcon = Colors.white;
+    final selectedText = Colors.white;
 
     return Tooltip(
       message: isCollapsed ? label : '',
       preferBelow: false,
       child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 1),
+        margin: const EdgeInsets.symmetric(vertical: 2, horizontal: 8),
         child: Material(
           color: Colors.transparent,
           child: InkWell(
             onTap: onTapOverride ?? () => onSectionChanged(section),
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(20),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 160),
               padding: EdgeInsets.symmetric(
-                horizontal: isCollapsed ? 0 : 12,
-                vertical: 9,
+                horizontal: isCollapsed ? 0 : 16,
+                vertical: 12,
               ),
               decoration: BoxDecoration(
                 color: isSelected ? selectedBg : Colors.transparent,
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(20),
               ),
               child: Row(
                 mainAxisAlignment: isCollapsed ? MainAxisAlignment.center : MainAxisAlignment.start,
                 children: [
                   Icon(
                     icon,
-                    size: 18,
+                    size: 20,
                     color: isSelected ? selectedIcon : textSecondary,
                   ),
                   if (!isCollapsed) ...[
-                    const SizedBox(width: 10),
+                    const SizedBox(width: 14),
                     Expanded(
                       child: Text(
                         label,
                         style: TextStyle(
-                          fontSize: 13,
-                          color: isSelected ? textPrimary : textSecondary,
+                          fontSize: 14,
+                          color: isSelected ? selectedText : textSecondary,
                           fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                         ),
                       ),
