@@ -1,16 +1,15 @@
-import '../models/order.dart';
-import '../models/outside_order.dart';
+import '../models/sale.dart';
 import '../models/expense.dart';
 import 'i_report_repository.dart';
 
 class ApiReportRepository implements IReportRepository {
   @override
-  Future<List<Order>> getOrdersBetween(DateTime start, DateTime end) {
+  Future<List<Sale>> getOrdersBetween(DateTime start, DateTime end) {
     throw UnimplementedError('API implementation pending');
   }
 
   @override
-  Future<List<OutsideOrder>> getOutsideOrdersBetween(DateTime start, DateTime end) {
+  Future<List<Sale>> getSalesBetween(DateTime start, DateTime end) {
     throw UnimplementedError('API implementation pending');
   }
 

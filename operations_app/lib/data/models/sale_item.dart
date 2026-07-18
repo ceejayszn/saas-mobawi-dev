@@ -1,4 +1,4 @@
-class OrderItem {
+class SaleItem {
   final String? id;
   final String orderId;
   final String itemId;
@@ -6,7 +6,7 @@ class OrderItem {
   final int quantity;
   final double price;
 
-  OrderItem({this.id, required this.orderId, required this.itemId, required this.itemName, required this.quantity, required this.price});
+  SaleItem({this.id, required this.orderId, required this.itemId, required this.itemName, required this.quantity, required this.price});
 
   Map<String, dynamic> toMap() {
     return {
@@ -19,8 +19,8 @@ class OrderItem {
     };
   }
 
-  factory OrderItem.fromMap(Map<String, dynamic> map) {
-    return OrderItem(
+  factory SaleItem.fromMap(Map<String, dynamic> map) {
+    return SaleItem(
       id: map['id']?.toString(),
       orderId: map['order_id'].toString(),
       itemId: map['item_id'].toString(),

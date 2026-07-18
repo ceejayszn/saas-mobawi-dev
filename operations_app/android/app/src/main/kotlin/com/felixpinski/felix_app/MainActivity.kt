@@ -1,4 +1,4 @@
-package com.felixpinski.felix_app
+package com.mobawi.copy_operations
 
 import io.flutter.embedding.android.FlutterActivity
 

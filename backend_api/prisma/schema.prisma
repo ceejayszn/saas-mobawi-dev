@@ -25,6 +25,8 @@ model Business {
   activityLogs ActivityLog[]
   deviceLogs   DeviceLog[]
   systemHealth SystemHealth[]
+  inventory    Inventory[]
+  staffs       Staff[]
 
   @@index([status])
   @@index([type])
@@ -144,13 +146,19 @@ model User {
 }
 
 model Sale {
-  id         Int      @id @default(autoincrement())
-  amount     Float
-  date       DateTime @default(now())
-  user       String
-  businessId String
-  business   Business @relation(fields: [businessId], references: [id])
-  createdAt  DateTime @default(now())
+  id            String   @id
+  amount        Float
+  date          DateTime @default(now())
+  user          String
+  businessId    String
+  business      Business @relation(fields: [businessId], references: [id])
+  createdAt     DateTime @default(now())
+  status        String   @default("Paid")
+  paymentMethod String   @default("Cash")
+  type          String   @default("In-Store")
+  customerName  String?
+  location      String?
+  items         String?  // JSON stringified items
 
   @@index([businessId])
   @@index([date])
@@ -158,14 +166,17 @@ model Sale {
 }
 
 model Expense {
-  id         Int      @id @default(autoincrement())
-  amount     Float
-  category   String
-  date       DateTime @default(now())
-  user       String
-  businessId String
-  business   Business @relation(fields: [businessId], references: [id])
-  createdAt  DateTime @default(now())
+  id          String   @id
+  title       String
+  amount      Float
+  category    String
+  date        DateTime @default(now())
+  user        String
+  businessId  String
+  business    Business @relation(fields: [businessId], references: [id])
+  createdAt   DateTime @default(now())
+  accountName String   @default("General")
+  status      String   @default("Settled")
 
   @@index([businessId])
   @@index([date])
@@ -215,5 +226,62 @@ model Product {
   updatedAt  DateTime @updatedAt
 
   @@index([businessId])
+}
+
+model Inventory {
+  id         String   @id
+  itemName   String
+  quantity   Float
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id])
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([businessId])
+}
+
+model Staff {
+  id               String             @id @default(uuid())
+  name             String
+  role             String
+  status           String             // "onDuty", "offDuty", "onHoliday"
+  phone            String?
+  imagePath        String?
+  lastModified     DateTime           @default(now())
+  hourlyWage       Float              @default(0.0)
+  totalHoursWorked Float              @default(0.0)
+  businessId       String
+  business         Business           @relation(fields: [businessId], references: [id])
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  shifts           StaffShift[]
+  transactions     StaffTransaction[]
+
+  @@index([businessId])
+}
+
+model StaffShift {
+  id        String    @id @default(uuid())
+  staffId   String
+  staff     Staff     @relation(fields: [staffId], references: [id], onDelete: Cascade)
+  startTime DateTime
+  endTime   DateTime?
+  date      String
+  createdAt DateTime  @default(now())
+
+  @@index([staffId])
+}
+
+model StaffTransaction {
+  id        String   @id @default(uuid())
+  staffId   String
+  staff     Staff    @relation(fields: [staffId], references: [id], onDelete: Cascade)
+  type      String   // "salary", "advance", "allowance", "bonus", "deduction", "expense"
+  amount    Float
+  date      DateTime
+  notes     String?
+  createdAt DateTime @default(now())
+
+  @@index([staffId])
 }
 

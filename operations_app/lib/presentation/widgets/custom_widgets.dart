@@ -46,12 +46,12 @@ class AppCard extends StatelessWidget {
   }
 }
 
-class MenuItemButton extends StatelessWidget {
+class ProductButton extends StatelessWidget {
   final String name;
   final double price;
   final VoidCallback onTap;
 
-  const MenuItemButton({
+  const ProductButton({
     super.key,
     required this.name,
     required this.price,

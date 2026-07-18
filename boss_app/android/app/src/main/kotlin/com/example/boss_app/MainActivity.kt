@@ -1,4 +1,4 @@
-package com.example.boss_app
+package com.mobawi.copy_boss
 
 import io.flutter.embedding.android.FlutterActivity
 

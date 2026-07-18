@@ -1,9 +1,9 @@
-// App-wide constants for Euton Hotel Admin POS
+// App-wide constants for Copy App Admin POS
 class AppConstants {
   AppConstants._();
 
   // App identity
-  static const String appName = 'Euton Hotel';
+  static const String appName = 'Copy App';
   static const String appSubtitle = 'Admin POS Service';
   static const String appVersion = '2.0.0';
   static const String appBuildNumber = '1';
@@ -14,12 +14,12 @@ class AppConstants {
 
   // Legal
   static const String privacyPolicy = '''
-Privacy Policy – Euton Hotel Admin POS
+Privacy Policy – Copy App Admin POS
 
 Last Updated: June 2026
 
 1. DATA COLLECTION
-Euton Hotel Admin POS collects only the data necessary to operate the application. This includes business configuration data, transaction records, staff information, and system logs. All data is stored locally on your device.
+Copy App Admin POS collects only the data necessary to operate the application. This includes business configuration data, transaction records, staff information, and system logs. All data is stored locally on your device.
 
 2. DATA STORAGE
 All data is stored locally on your device using encrypted storage. We do not transmit your business data to external servers unless you explicitly configure cloud backup features (coming soon).
@@ -41,12 +41,12 @@ For privacy concerns, contact MOBAWI LLC at cheruyotcollo@gmail.com.
 ''';
 
   static const String termsAndConditions = '''
-Terms & Conditions – Euton Hotel Admin POS
+Terms & Conditions – Copy App Admin POS
 
 Last Updated: June 2026
 
 1. ACCEPTANCE
-By using Euton Hotel Admin POS, you agree to these terms.
+By using Copy App Admin POS, you agree to these terms.
 
 2. LICENSE
 This application is licensed for use by authorized hotel administrators only. Unauthorized access is strictly prohibited.
@@ -71,7 +71,7 @@ MOBAWI LLC – cheruyotcollo@gmail.com – 0718901990
 ''';
 
   static const String faq = '''
-Frequently Asked Questions – Euton Hotel Admin POS
+Frequently Asked Questions – Copy App Admin POS
 
 Q: What is the default admin PIN?
 A: You set your own PIN during first-time setup. If you need to reset it, use the "Forgot PIN?" option on the login screen.
@@ -98,14 +98,14 @@ Q: How do I contact support?
 A: Go to Settings → Support to find developer contact information.
 
 Q: Is the app free?
-A: Euton Hotel Admin POS is licensed software. Contact MOBAWI LLC for licensing information.
+A: Copy App Admin POS is licensed software. Contact MOBAWI LLC for licensing information.
 
 Q: How do I change the app theme?
 A: Go to Settings → Theme to switch between Light and Dark mode.
 ''';
 
   static const String licenses = '''
-Open Source Licenses – Euton Hotel Admin POS
+Open Source Licenses – Copy App Admin POS
 
 This application uses the following open source packages:
 
@@ -197,7 +197,7 @@ https://pub.dev/packages/printing
 
   // No default PIN — users must create their own during first-run setup.
   // This empty value triggers the first-run onboarding flow in AuthService.
-  static const String defaultAdminPin = '';
+  static const String defaultAdminPin = '0000';
 
   // Security questions
   static const List<String> securityQuestions = [

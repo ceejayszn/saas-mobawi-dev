@@ -1,44 +1,43 @@
 import 'package:flutter/material.dart';
-import '../../data/models/menu_item.dart';
-import '../../data/models/order.dart';
-import '../../data/models/order_item.dart';
-import '../../data/models/outside_order.dart';
+import '../../data/models/product.dart';
+import '../../data/models/sale.dart';
+import '../../data/models/sale_item.dart';
 import '../../data/services/audit_log_service.dart';
 import '../../data/repositories/i_order_repository.dart';
 
-class OrderProvider with ChangeNotifier {
+class SaleProvider with ChangeNotifier {
   final IOrderRepository _repository;
 
   final Map<String, int> _cart = {}; // itemId -> quantity
-  final List<Order> _recentOrders = [];
+  final List<Sale> _recentOrders = [];
   final Map<String, int> _outsideCart = {};
-  List<OutsideOrder> _pendingOutsideOrders = [];
-  List<OutsideOrder> _readyOutsideOrders = [];
-  List<OutsideOrder> _deliveringOutsideOrders = [];
-  List<OutsideOrder> _paidOutsideOrders = [];
+  List<Sale> _pendingSales = [];
+  List<Sale> _readySales = [];
+  List<Sale> _deliveringSales = [];
+  List<Sale> _paidSales = [];
 
   Map<String, int> get cart => _cart;
-  List<Order> get recentOrders => _recentOrders;
+  List<Sale> get recentOrders => _recentOrders;
   Map<String, int> get outsideCart => _outsideCart;
-  List<OutsideOrder> get pendingOutsideOrders => _pendingOutsideOrders;
-  List<OutsideOrder> get readyOutsideOrders => _readyOutsideOrders;
-  List<OutsideOrder> get deliveringOutsideOrders => _deliveringOutsideOrders;
-  List<OutsideOrder> get paidOutsideOrders => _paidOutsideOrders;
+  List<Sale> get pendingSales => _pendingSales;
+  List<Sale> get readySales => _readySales;
+  List<Sale> get deliveringSales => _deliveringSales;
+  List<Sale> get paidSales => _paidSales;
 
-  int get totalItemCount => _cart.values.fold(0, (sum, q) => sum + q);
+  int get amountItemCount => _cart.values.fold(0, (sum, q) => sum + q);
   int get outsideTotalItemCount => _outsideCart.values.fold(0, (sum, q) => sum + q);
 
-  OrderProvider(this._repository) {
-    loadOutsideOrders();
+  SaleProvider(this._repository) {
+    loadSales();
   }
 
-  void addToCart(MenuItem item) {
+  void addToCart(Product item) {
     if (item.id == null) return;
     _cart[item.id!] = (_cart[item.id!] ?? 0) + 1;
     notifyListeners();
   }
 
-  void removeFromCart(MenuItem item) {
+  void removeFromCart(Product item) {
     if (item.id == null) return;
     if (_cart.containsKey(item.id!)) {
       if (_cart[item.id!]! > 1) {
@@ -55,19 +54,19 @@ class OrderProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  void clearItem(MenuItem item) {
+  void clearItem(Product item) {
     if (item.id == null) return;
     _cart.remove(item.id);
     notifyListeners();
   }
 
-  void addToOutsideCart(MenuItem item) {
+  void addToOutsideCart(Product item) {
     if (item.id == null) return;
     _outsideCart[item.id!] = (_outsideCart[item.id!] ?? 0) + 1;
     notifyListeners();
   }
 
-  void removeFromOutsideCart(MenuItem item) {
+  void removeFromOutsideCart(Product item) {
     if (item.id == null || !_outsideCart.containsKey(item.id!)) return;
     final currentQty = _outsideCart[item.id!] ?? 0;
     if (currentQty > 1) {
@@ -83,39 +82,39 @@ class OrderProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  double calculateTotal(List<MenuItem> allItems) {
-    double total = 0;
+  double calculateTotal(List<Product> allItems) {
+    double amount = 0;
     _cart.forEach((itemId, qty) {
       final item = allItems.firstWhere((i) => i.id == itemId);
-      total += item.price * qty;
+      amount += item.price * qty;
     });
-    return total;
+    return amount;
   }
 
-  double calculateOutsideTotal(List<MenuItem> allItems) {
-    double total = 0;
+  double calculateOutsideTotal(List<Product> allItems) {
+    double amount = 0;
     _outsideCart.forEach((itemId, qty) {
       final item = allItems.firstWhere((i) => i.id == itemId);
-      total += item.price * qty;
+      amount += item.price * qty;
     });
-    return total;
+    return amount;
   }
 
-  Future<bool> processOrder(String paymentMethod, List<MenuItem> allItems) async {
+  Future<bool> processOrder(String paymentMethod, List<Product> allItems) async {
     if (_cart.isEmpty) return false;
 
-    double total = calculateTotal(allItems);
-    final order = Order(
-      total: total,
+    double amount = calculateTotal(allItems);
+    final sale = Sale(
+      amount: amount,
       status: 'Paid',
       paymentMethod: paymentMethod,
       createdAt: DateTime.now(),
     );
 
-    List<OrderItem> items = [];
+    List<SaleItem> items = [];
     _cart.forEach((itemId, qty) {
       final item = allItems.firstWhere((i) => i.id == itemId);
-      items.add(OrderItem(
+      items.add(SaleItem(
         orderId: '',
         itemId: itemId,
         itemName: item.name,
@@ -124,16 +123,16 @@ class OrderProvider with ChangeNotifier {
       ));
     });
 
-    final orderId = await _repository.createOrder(order, items);
+    final orderId = await _repository.createOrder(sale, items);
     
     await AuditLogService.instance.orderPlaced(
       orderId: 'ORD-$orderId',
-      total: total,
-      itemCount: totalItemCount,
+      amount: amount,
+      itemCount: amountItemCount,
     );
     await AuditLogService.instance.orderPaid(
       orderId: 'ORD-$orderId',
-      amount: total,
+      amount: amount,
       paymentMethod: paymentMethod,
     );
 
@@ -142,37 +141,37 @@ class OrderProvider with ChangeNotifier {
     return true;
   }
 
-  Future<void> loadOutsideOrders() async {
-    _pendingOutsideOrders = await _repository.getOutsideOrdersByStatus('Pending');
-    _readyOutsideOrders = await _repository.getOutsideOrdersByStatus('Ready');
-    _deliveringOutsideOrders = await _repository.getOutsideOrdersByStatus('Delivering');
-    _paidOutsideOrders = await _repository.getOutsideOrdersByStatus('Paid');
+  Future<void> loadSales() async {
+    _pendingSales = await _repository.getSalesByStatus('Pending');
+    _readySales = await _repository.getSalesByStatus('Ready');
+    _deliveringSales = await _repository.getSalesByStatus('Delivering');
+    _paidSales = await _repository.getSalesByStatus('Paid');
     _frequentCustomers = await _repository.getFrequentCustomers();
     notifyListeners();
   }
 
-  Future<bool> createOutsideOrder({
+  Future<bool> createSale({
     required String customerName,
     required String location,
-    required List<MenuItem> allItems,
+    required List<Product> allItems,
   }) async {
     if (_outsideCart.isEmpty) return false;
 
-    final total = calculateOutsideTotal(allItems);
-    final order = OutsideOrder(
+    final amount = calculateOutsideTotal(allItems);
+    final sale = Sale(
       customerName: customerName,
       location: location,
-      total: total,
+      amount: amount,
       status: 'Pending',
       paymentMethod: 'Unpaid',
       createdAt: DateTime.now(),
     );
 
-    final items = <OrderItem>[];
+    final items = <SaleItem>[];
     _outsideCart.forEach((itemId, qty) {
-      final item = allItems.firstWhere((menuItem) => menuItem.id == itemId);
+      final item = allItems.firstWhere((product) => product.id == itemId);
       items.add(
-        OrderItem(
+        SaleItem(
           orderId: '',
           itemId: itemId,
           itemName: item.name,
@@ -182,40 +181,40 @@ class OrderProvider with ChangeNotifier {
       );
     });
 
-    final orderId = await _repository.createOutsideOrder(order, items);
+    final orderId = await _repository.createSale(sale, items);
     
     await AuditLogService.instance.orderPlaced(
       orderId: 'OUT-$orderId',
-      total: total,
+      amount: amount,
       itemCount: _outsideCart.values.fold(0, (sum, q) => sum + q),
     );
 
     clearOutsideCart();
-    await loadOutsideOrders();
+    await loadSales();
     return true;
   }
 
-  Future<void> markOutsideOrderPaid(String orderId, {String paymentMethod = 'Cash'}) async {
-    await _repository.markOutsideOrderPaid(orderId, paymentMethod: paymentMethod);
+  Future<void> markSalePaid(String orderId, {String paymentMethod = 'Cash'}) async {
+    await _repository.markSalePaid(orderId, paymentMethod: paymentMethod);
     
-    final order = _pendingOutsideOrders.firstWhere((o) => o.id == orderId, orElse: () => _readyOutsideOrders.firstWhere((o) => o.id == orderId));
+    final sale = _pendingSales.firstWhere((o) => o.id == orderId, orElse: () => _readySales.firstWhere((o) => o.id == orderId));
     await AuditLogService.instance.orderPaid(
       orderId: 'OUT-$orderId',
-      amount: order.total,
+      amount: sale.amount,
       paymentMethod: paymentMethod,
     );
 
-    await loadOutsideOrders();
+    await loadSales();
   }
 
-  Future<void> markOutsideOrderDelivering(String orderId) async {
-    await _repository.updateOutsideOrderStatus(orderId, 'Delivering');
-    await loadOutsideOrders();
+  Future<void> markSaleDelivering(String orderId) async {
+    await _repository.updateSaleStatus(orderId, 'Delivering');
+    await loadSales();
   }
 
-  Future<void> updateOutsideOrderStatus(String orderId, String status) async {
-    await _repository.updateOutsideOrderStatus(orderId, status);
-    await loadOutsideOrders();
+  Future<void> updateSaleStatus(String orderId, String status) async {
+    await _repository.updateSaleStatus(orderId, status);
+    await loadSales();
   }
 
   List<Map<String, dynamic>> _frequentCustomers = [];

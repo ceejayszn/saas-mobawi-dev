@@ -1,22 +1,23 @@
 import 'package:flutter/material.dart';
 import '../../data/db/database_helper.dart';
 import '../../data/models/models.dart';
+import '../../data/services/sync_service.dart';
 
 class AppProvider with ChangeNotifier {
   final DatabaseHelper _db = DatabaseHelper.instance;
 
-  List<MenuItem> _menuItems = [];
-  List<Order> _orders = [];
+  List<Product> _products = [];
+  List<Sale> _orders = [];
   List<Expense> _expenses = [];
   List<InventoryItem> _inventory = [];
 
-  List<MenuItem> get menuItems => _menuItems.where((item) => item.isActive).toList();
-  List<MenuItem> get allMenuItems => _menuItems;
-  List<Order> get orders => _orders;
+  List<Product> get products => _products.where((item) => item.isActive).toList();
+  List<Product> get allProducts => _products;
+  List<Sale> get sales => _orders;
   List<Expense> get expenses => _expenses;
   List<InventoryItem> get inventory => _inventory;
 
-  // Current order state (POS)
+  // Current sale state (POS)
   final Map<String, int> _cart = {}; // itemId -> quantity
   Map<String, int> get cart => _cart;
 
@@ -35,14 +36,14 @@ class AppProvider with ChangeNotifier {
   }
 
   Future<void> loadMenu() async {
-    final data = await _db.queryAll('menu_items');
-    _menuItems = data.map((e) => MenuItem.fromMap(e)).toList();
+    final data = await _db.queryAll('products');
+    _products = data.map((e) => Product.fromMap(e)).toList();
     notifyListeners();
   }
 
   Future<void> loadOrders() async {
-    final data = await _db.queryAll('orders');
-    _orders = data.map((e) => Order.fromMap(e)).toList().reversed.toList();
+    final data = await _db.queryAll('sales');
+    _orders = data.map((e) => Sale.fromMap(e)).toList().reversed.toList();
     notifyListeners();
   }
 
@@ -59,13 +60,13 @@ class AppProvider with ChangeNotifier {
   }
 
   // POS Actions
-  void addToCart(MenuItem item) {
+  void addToCart(Product item) {
     if (item.id == null) return;
     _cart[item.id!] = (_cart[item.id!] ?? 0) + 1;
     notifyListeners();
   }
 
-  void removeFromCart(MenuItem item) {
+  void removeFromCart(Product item) {
     if (item.id == null) return;
     if (_cart.containsKey(item.id!)) {
       if (_cart[item.id!]! > 1) {
@@ -83,21 +84,21 @@ class AppProvider with ChangeNotifier {
   }
 
   double get cartTotal {
-    double total = 0;
+    double amount = 0;
     _cart.forEach((itemId, qty) {
-      final item = _menuItems.firstWhere((element) => element.id == itemId);
-      total += item.price * qty;
+      final item = _products.firstWhere((element) => element.id == itemId);
+      amount += item.price * qty;
     });
-    return total;
+    return amount;
   }
 
   Future<void> checkout(String paymentMethod) async {
     if (_cart.isEmpty) return;
 
-    List<OrderItem> orderItems = [];
+    List<SaleItem> saleItems = [];
     _cart.forEach((itemId, qty) {
-      final item = _menuItems.firstWhere((element) => element.id == itemId);
-      orderItems.add(OrderItem(
+      final item = _products.firstWhere((element) => element.id == itemId);
+      saleItems.add(SaleItem(
         orderId: '', // Placeholder
         itemId: itemId,
         itemName: item.name,
@@ -106,24 +107,25 @@ class AppProvider with ChangeNotifier {
       ));
     });
 
-    final order = Order(
-      total: cartTotal,
+    final sale = Sale(
+      amount: cartTotal,
       status: 'Paid',
       paymentMethod: paymentMethod,
       createdAt: DateTime.now(),
     );
 
-    await _db.insertOrder(order, orderItems);
+    await _db.insertOrder(sale, saleItems);
 
     // Auto-deduct inventory stocks for matching items
-    for (var orderItem in orderItems) {
+    for (var saleItem in saleItems) {
       try {
         final matchingInventory = _inventory.firstWhere(
-          (inv) => inv.itemName.toLowerCase() == orderItem.itemName.toLowerCase()
+          (inv) => inv.itemName.toLowerCase() == saleItem.itemName.toLowerCase()
         );
         if (matchingInventory.id != null) {
-          final newQty = (matchingInventory.quantity - orderItem.quantity).clamp(0.0, double.infinity);
+          final newQty = (matchingInventory.quantity - saleItem.quantity).clamp(0.0, double.infinity);
           await _db.update('inventory', {'quantity': newQty}, matchingInventory.id!);
+          await SyncService.instance.enqueue('/api/inventory/${matchingInventory.id}', 'PUT', {'quantity': newQty});
         }
       } catch (_) {
         // No matching item in inventory to deduct, ignore silently or log
@@ -136,19 +138,25 @@ class AppProvider with ChangeNotifier {
   }
 
   // Management Actions
-  Future<void> addMenuItem(String name, double price) async {
-    await _db.insert('menu_items', MenuItem(name: name, price: price).toMap());
+  Future<void> addProduct(String name, double price) async {
+    await _db.insert('products', Product(name: name, price: price).toMap());
     await loadMenu();
   }
 
-  Future<void> toggleMenuItem(MenuItem item) async {
-    final updated = MenuItem(id: item.id, name: item.name, price: item.price, isActive: !item.isActive);
-    await _db.update('menu_items', updated.toMap(), item.id!);
+  Future<void> toggleProduct(Product item) async {
+    final updated = Product(id: item.id, name: item.name, price: item.price, isActive: !item.isActive);
+    await _db.update('products', updated.toMap(), item.id!);
     await loadMenu();
   }
 
   Future<void> addExpense(String title, double amount) async {
     await _db.insert('expenses', Expense(title: title, amount: amount, date: DateTime.now()).toMap());
     await loadExpenses();
+  }
+
+  ValueNotifier<SyncState> get syncNotifier => SyncService.instance.stateNotifier;
+
+  Future<void> triggerSync() async {
+    await SyncService.instance.syncPendingItems();
   }
 }

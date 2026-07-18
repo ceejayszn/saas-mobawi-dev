@@ -18,7 +18,7 @@ class BossReportsScreen extends StatefulWidget {
 
 class _BossReportsScreenState extends State<BossReportsScreen> {
   String _adminName = 'Admin';
-  String _businessName = 'Euton Hotel';
+  String _businessName = 'Copy App';
 
   @override
   void initState() {

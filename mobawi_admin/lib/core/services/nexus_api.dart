@@ -14,6 +14,37 @@ class NexusApi {
   // Root URL of the Render backend API
   String apiBaseUrl = 'https://mobawi-backend-api.onrender.com'; 
 
+  String? _authToken;
+
+  void setAuthToken(String token) {
+    _authToken = token;
+  }
+
+  Map<String, String> get _headers => {
+        'Content-Type': 'application/json',
+        if (_authToken != null) 'Authorization': 'Bearer $_authToken',
+      };
+
+  // --- Authentication ---
+  Future<bool> login(String username, String password) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$apiBaseUrl/api/auth/login'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'username': username, 'password': password}),
+      ).timeout(const Duration(seconds: 5));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        _authToken = data['token'] as String?;
+        return true;
+      }
+    } catch (e) {
+      debugPrint('Login API request failed: $e');
+    }
+    return false;
+  }
+
   // Streams / Streams Controllers for live updates
   final _monitoringStream = StreamController<Map<String, dynamic>>.broadcast();
   final _deploymentsStream = StreamController<List<dynamic>>.broadcast();
@@ -47,20 +78,25 @@ class NexusApi {
 
   Future<Map<String, dynamic>> fetchLiveMetrics() async {
     try {
-      final response = await http.get(Uri.parse('$apiBaseUrl/api/nexus/metrics')).timeout(const Duration(seconds: 3));
+      final response = await http.get(
+        Uri.parse('$apiBaseUrl/api/nexus/metrics'),
+        headers: _headers,
+      ).timeout(const Duration(seconds: 3));
       if (response.statusCode == 200) {
         return jsonDecode(response.body) as Map<String, dynamic>;
       }
     } catch (e) {
       debugPrint('Metrics API fetch failed: $e');
     }
-    // Return empty dataset so UI triggers beautiful empty states
     return {};
   }
 
   Future<List<dynamic>> fetchLiveDeployments() async {
     try {
-      final response = await http.get(Uri.parse('$apiBaseUrl/api/nexus/deployments')).timeout(const Duration(seconds: 3));
+      final response = await http.get(
+        Uri.parse('$apiBaseUrl/api/nexus/deployments'),
+        headers: _headers,
+      ).timeout(const Duration(seconds: 3));
       if (response.statusCode == 200) {
         return jsonDecode(response.body) as List<dynamic>;
       }
@@ -72,7 +108,10 @@ class NexusApi {
 
   Future<String> fetchLiveLogs() async {
     try {
-      final response = await http.get(Uri.parse('$apiBaseUrl/api/nexus/logs')).timeout(const Duration(seconds: 3));
+      final response = await http.get(
+        Uri.parse('$apiBaseUrl/api/nexus/logs'),
+        headers: _headers,
+      ).timeout(const Duration(seconds: 3));
       if (response.statusCode == 200) {
         return response.body;
       }
@@ -84,7 +123,10 @@ class NexusApi {
 
   Future<Map<String, dynamic>> fetchFounderOverview() async {
     try {
-      final response = await http.get(Uri.parse('$apiBaseUrl/api/nexus/overview')).timeout(const Duration(seconds: 3));
+      final response = await http.get(
+        Uri.parse('$apiBaseUrl/api/nexus/overview'),
+        headers: _headers,
+      ).timeout(const Duration(seconds: 3));
       if (response.statusCode == 200) {
         return jsonDecode(response.body) as Map<String, dynamic>;
       }
@@ -96,7 +138,10 @@ class NexusApi {
 
   Future<List<dynamic>> fetchProducts() async {
     try {
-      final response = await http.get(Uri.parse('$apiBaseUrl/api/nexus/products')).timeout(const Duration(seconds: 3));
+      final response = await http.get(
+        Uri.parse('$apiBaseUrl/api/nexus/products'),
+        headers: _headers,
+      ).timeout(const Duration(seconds: 3));
       if (response.statusCode == 200) {
         return jsonDecode(response.body) as List<dynamic>;
       }
@@ -108,7 +153,10 @@ class NexusApi {
 
   Future<List<dynamic>> fetchCustomers() async {
     try {
-      final response = await http.get(Uri.parse('$apiBaseUrl/api/nexus/customers')).timeout(const Duration(seconds: 3));
+      final response = await http.get(
+        Uri.parse('$apiBaseUrl/api/nexus/customers'),
+        headers: _headers,
+      ).timeout(const Duration(seconds: 3));
       if (response.statusCode == 200) {
         return jsonDecode(response.body) as List<dynamic>;
       }
@@ -124,7 +172,7 @@ class NexusApi {
     try {
       final response = await http.post(
         Uri.parse('$apiBaseUrl/api/nexus/deploy'),
-        headers: {'Content-Type': 'application/json'},
+        headers: _headers,
         body: jsonEncode({'service_id': serviceId}),
       );
       return response.statusCode == 200;
@@ -137,7 +185,7 @@ class NexusApi {
     try {
       final response = await http.post(
         Uri.parse('$apiBaseUrl/api/nexus/restart'),
-        headers: {'Content-Type': 'application/json'},
+        headers: _headers,
         body: jsonEncode({'service_id': serviceId}),
       );
       return response.statusCode == 200;
@@ -150,7 +198,7 @@ class NexusApi {
     try {
       final response = await http.post(
         Uri.parse('$apiBaseUrl/api/nexus/customers'),
-        headers: {'Content-Type': 'application/json'},
+        headers: _headers,
         body: jsonEncode(data),
       );
       return response.statusCode == 201;
@@ -161,7 +209,10 @@ class NexusApi {
 
   Future<List<dynamic>> fetchBusinesses() async {
     try {
-      final response = await http.get(Uri.parse('$apiBaseUrl/api/admin/businesses')).timeout(const Duration(seconds: 3));
+      final response = await http.get(
+        Uri.parse('$apiBaseUrl/api/admin/businesses'),
+        headers: _headers,
+      ).timeout(const Duration(seconds: 3));
       if (response.statusCode == 200) {
         return jsonDecode(response.body) as List<dynamic>;
       }
@@ -173,7 +224,10 @@ class NexusApi {
 
   Future<Map<String, dynamic>> fetchBusinessStatistics(String businessId) async {
     try {
-      final response = await http.get(Uri.parse('$apiBaseUrl/api/admin/businesses/$businessId/statistics')).timeout(const Duration(seconds: 3));
+      final response = await http.get(
+        Uri.parse('$apiBaseUrl/api/admin/businesses/$businessId/statistics'),
+        headers: _headers,
+      ).timeout(const Duration(seconds: 3));
       if (response.statusCode == 200) {
         return jsonDecode(response.body) as Map<String, dynamic>;
       }
@@ -185,7 +239,10 @@ class NexusApi {
 
   Future<Map<String, dynamic>> fetchBusinessLogs(String businessId) async {
     try {
-      final response = await http.get(Uri.parse('$apiBaseUrl/api/admin/businesses/$businessId/logs')).timeout(const Duration(seconds: 3));
+      final response = await http.get(
+        Uri.parse('$apiBaseUrl/api/admin/businesses/$businessId/logs'),
+        headers: _headers,
+      ).timeout(const Duration(seconds: 3));
       if (response.statusCode == 200) {
         return jsonDecode(response.body) as Map<String, dynamic>;
       }
@@ -197,7 +254,10 @@ class NexusApi {
 
   Future<Map<String, dynamic>> fetchBusinessDevices(String businessId) async {
     try {
-      final response = await http.get(Uri.parse('$apiBaseUrl/api/admin/businesses/$businessId/devices')).timeout(const Duration(seconds: 3));
+      final response = await http.get(
+        Uri.parse('$apiBaseUrl/api/admin/businesses/$businessId/devices'),
+        headers: _headers,
+      ).timeout(const Duration(seconds: 3));
       if (response.statusCode == 200) {
         return jsonDecode(response.body) as Map<String, dynamic>;
       }

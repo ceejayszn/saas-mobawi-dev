@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import '../../data/models/expense.dart';
-import '../../data/models/order.dart';
-import '../../data/models/outside_order.dart';
+import '../../data/models/sale.dart';
 import '../../data/repositories/i_report_repository.dart';
 
 class ReportProvider with ChangeNotifier {
   final IReportRepository _repository;
 
-  double _totalSales = 0;
-  double _totalExpenses = 0;
+  double _amountSales = 0;
+  double _amountExpenses = 0;
   int _orderCount = 0;
   double _mpesaIncome = 0;
   double _cashOnHand = 0;
@@ -17,9 +16,9 @@ class ReportProvider with ChangeNotifier {
   List<Map<String, dynamic>> _salesSummary = [];
   List<Expense> _expenses = [];
 
-  double get totalSales => _totalSales;
-  double get totalExpenses => _totalExpenses;
-  double get netProfit => _totalSales - _totalExpenses;
+  double get amountSales => _amountSales;
+  double get amountExpenses => _amountExpenses;
+  double get netProfit => _amountSales - _amountExpenses;
   int get orderCount => _orderCount;
   double get mpesaIncome => _mpesaIncome;
   double get cashOnHand => _cashOnHand;
@@ -40,13 +39,13 @@ class ReportProvider with ChangeNotifier {
   }
 
   Future<void> loadRange(DateTimeRange range, {bool notify = false}) async {
-    final orders = await _repository.getOrdersBetween(range.start, range.end);
-    final outsideOrders = await _repository.getOutsideOrdersBetween(range.start, range.end);
+    final sales = await _repository.getOrdersBetween(range.start, range.end);
+    final outsideOrders = await _repository.getSalesBetween(range.start, range.end);
     _expenses = await _repository.getExpensesBetween(range.start, range.end);
     _salesSummary = await _repository.getSalesSummaryBetween(range.start, range.end);
 
     _applyMetrics(
-      orders: orders,
+      sales: sales,
       outsideOrders: outsideOrders,
       expenses: _expenses,
       salesSummary: _salesSummary,
@@ -58,14 +57,14 @@ class ReportProvider with ChangeNotifier {
   }
 
   List<Map<String, dynamic>> get topItems {
-    final totalQuantity = salesSummary.fold<int>(
+    final amountQuantity = salesSummary.fold<int>(
       0,
       (sum, row) => sum + ((row['quantity'] ?? 0) as num).toInt(),
     );
 
     return salesSummary.take(5).map((row) {
       final quantity = ((row['quantity'] ?? 0) as num).toInt();
-      final percent = totalQuantity == 0 ? 0.0 : quantity / totalQuantity;
+      final percent = amountQuantity == 0 ? 0.0 : quantity / amountQuantity;
       return {
         ...row,
         'percent': percent,
@@ -74,29 +73,29 @@ class ReportProvider with ChangeNotifier {
   }
 
   void _applyMetrics({
-    required List<Order> orders,
-    required List<OutsideOrder> outsideOrders,
+    required List<Sale> sales,
+    required List<Sale> outsideOrders,
     required List<Expense> expenses,
     required List<Map<String, dynamic>> salesSummary,
   }) {
-    final paidOutsideOrders = outsideOrders.where((order) => order.status.toLowerCase() == 'paid').toList();
+    final paidSales = outsideOrders.where((sale) => sale.status.toLowerCase() == 'paid').toList();
     final combinedSales = [
-      ...orders.map((order) => order.total),
-      ...paidOutsideOrders.map((order) => order.total),
+      ...sales.map((sale) => sale.amount),
+      ...paidSales.map((sale) => sale.amount),
     ];
 
-    _totalSales = combinedSales.fold(0.0, (sum, total) => sum + total);
-    _totalExpenses = expenses.fold(0.0, (sum, expense) => sum + expense.amount);
-    _orderCount = orders.length + paidOutsideOrders.length;
-    _deliveryRevenue = paidOutsideOrders.fold(0.0, (sum, order) => sum + order.total);
-    _eatInRevenue = _totalSales - _deliveryRevenue;
+    _amountSales = combinedSales.fold(0.0, (sum, amount) => sum + amount);
+    _amountExpenses = expenses.fold(0.0, (sum, expense) => sum + expense.amount);
+    _orderCount = sales.length + paidSales.length;
+    _deliveryRevenue = paidSales.fold(0.0, (sum, sale) => sum + sale.amount);
+    _eatInRevenue = _amountSales - _deliveryRevenue;
     _mpesaIncome = [
-      ...orders.where((order) => order.paymentMethod.toLowerCase() == 'm-pesa').map((order) => order.total),
-      ...paidOutsideOrders.where((order) => order.paymentMethod.toLowerCase() == 'm-pesa').map((order) => order.total),
-    ].fold(0.0, (sum, total) => sum + total);
-    _cashOnHand = orders
-        .where((order) => order.paymentMethod.toLowerCase() == 'cash')
-        .fold(0.0, (sum, order) => sum + order.total);
+      ...sales.where((sale) => sale.paymentMethod.toLowerCase() == 'm-pesa').map((sale) => sale.amount),
+      ...paidSales.where((sale) => sale.paymentMethod.toLowerCase() == 'm-pesa').map((sale) => sale.amount),
+    ].fold(0.0, (sum, amount) => sum + amount);
+    _cashOnHand = sales
+        .where((sale) => sale.paymentMethod.toLowerCase() == 'cash')
+        .fold(0.0, (sum, sale) => sum + sale.amount);
     _salesSummary = salesSummary;
     _expenses = expenses;
   }

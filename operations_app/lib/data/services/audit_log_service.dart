@@ -22,9 +22,9 @@ class AuditLogService {
   // ─────────────────────────────────────────────
 
   Future<void> log({
-    required String module,    // e.g. 'order', 'payment', 'security', 'shift'
+    required String module,    // e.g. 'sale', 'payment', 'security', 'shift'
     required String action,    // e.g. 'created', 'paid', 'login', 'cancelled'
-    required String entity,    // e.g. 'Order', 'Expense', 'Session'
+    required String entity,    // e.g. 'Sale', 'Expense', 'Session'
     String? entityId,          // e.g. 'ORD-0042'
     required String userName,  // who triggered the event
     required String description,
@@ -56,17 +56,17 @@ class AuditLogService {
 
   Future<void> orderPlaced({
     required String orderId,
-    required double total,
+    required double amount,
     required int itemCount,
     String user = 'Cashier',
   }) => log(
-    module: 'order',
+    module: 'sale',
     action: 'created',
-    entity: 'Order',
+    entity: 'Sale',
     entityId: orderId,
     userName: user,
-    description: 'New order placed — $itemCount item(s) · KES ${total.toStringAsFixed(0)}',
-    amount: total,
+    description: 'New sale placed — $itemCount item(s) · KES ${amount.toStringAsFixed(0)}',
+    amount: amount,
     severity: 'success',
   );
 
@@ -91,12 +91,12 @@ class AuditLogService {
     String user = 'Cashier',
     String reason = '',
   }) => log(
-    module: 'order',
+    module: 'sale',
     action: 'updated',
-    entity: 'Order',
+    entity: 'Sale',
     entityId: orderId,
     userName: user,
-    description: 'Order modified${reason.isNotEmpty ? ' — $reason' : ''}',
+    description: 'Sale modified${reason.isNotEmpty ? ' — $reason' : ''}',
     severity: 'warning',
   );
 
@@ -105,12 +105,12 @@ class AuditLogService {
     String user = 'Cashier',
     String reason = '',
   }) => log(
-    module: 'order',
+    module: 'sale',
     action: 'deleted',
-    entity: 'Order',
+    entity: 'Sale',
     entityId: orderId,
     userName: user,
-    description: 'Order cancelled${reason.isNotEmpty ? ' — $reason' : ''}',
+    description: 'Sale cancelled${reason.isNotEmpty ? ' — $reason' : ''}',
     severity: 'error',
   );
 
