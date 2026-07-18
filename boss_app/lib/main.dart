@@ -19,7 +19,7 @@ import 'data/repositories/i_audit_log_repository.dart';
 import 'data/repositories/local_audit_log_repository.dart';
 import 'data/repositories/api_audit_log_repository.dart';
 
-const bool useCloudBackend = false;
+const bool useCloudBackend = true;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

@@ -92,17 +92,20 @@ class _LoginScreenState extends State<LoginScreen>
     setState(() => _isLoading = false);
 
     if (result.isSuccess) {
-      // Clear PIN before navigating (security)
       _pinController.clear();
       HapticFeedback.lightImpact();
-      Navigator.of(context).pushReplacement(
-        PageRouteBuilder(
-          pageBuilder: (_, _, _) => const MainDashboard(),
-          transitionsBuilder: (_, anim, _, child) =>
-              FadeTransition(opacity: anim, child: child),
-          transitionDuration: const Duration(milliseconds: 400),
-        ),
-      );
+      if (pin == '0000') {
+        _showForceChangePinDialog();
+      } else {
+        Navigator.of(context).pushReplacement(
+          PageRouteBuilder(
+            pageBuilder: (_, _, _) => const MainDashboard(),
+            transitionsBuilder: (_, anim, _, child) =>
+                FadeTransition(opacity: anim, child: child),
+            transitionDuration: const Duration(milliseconds: 400),
+          ),
+        );
+      }
     } else if (result.isLocked) {
       _pinController.clear();
       _startLockoutTimer(result.remainingSeconds ?? 30);
@@ -113,6 +116,182 @@ class _LoginScreenState extends State<LoginScreen>
       _triggerShake();
       HapticFeedback.heavyImpact();
     }
+  }
+
+  void _showForceChangePinDialog() {
+    final newPinController = TextEditingController();
+    final confirmPinController = TextEditingController();
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Change Default PIN'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('For security, you must change the default PIN before proceeding.'),
+              const SizedBox(height: 16),
+              TextField(
+                controller: newPinController,
+                obscureText: true,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: 'New PIN',
+                  hintText: '4-12 digits',
+                ),
+              ),
+              TextField(
+                controller: confirmPinController,
+                obscureText: true,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: 'Confirm New PIN',
+                  hintText: '4-12 digits',
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () async {
+                final newPin = newPinController.text.trim();
+                final confirmPin = confirmPinController.text.trim();
+                if (newPin.isEmpty || newPin == '0000') {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Please enter a secure non-default PIN.')),
+                  );
+                  return;
+                }
+                if (newPin != confirmPin) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('PINs do not match.')),
+                  );
+                  return;
+                }
+                if (newPin.length < AppConstants.minPinLength) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('PIN must be at least ${AppConstants.minPinLength} digits.')),
+                  );
+                  return;
+                }
+                await AuthService.instance.forceResetPin(newPin);
+                if (context.mounted) {
+                  Navigator.of(context).pop();
+                  Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(builder: (_) => const MainDashboard()),
+                  );
+                }
+              },
+              child: const Text('Save & Continue'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showForgotPinDialog() {
+    final phoneController = TextEditingController();
+    final newPinController = TextEditingController();
+    final confirmPinController = TextEditingController();
+    bool codeValidated = false;
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('Reset PIN via Admin'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (!codeValidated) ...[
+                    const Text('Please contact the admin (MOBAWI LLC at 0718901990) and enter the admin phone number to reset your PIN:'),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: phoneController,
+                      keyboardType: TextInputType.phone,
+                      decoration: const InputDecoration(
+                        labelText: 'Admin Phone Number',
+                        hintText: 'e.g., 0718901990',
+                      ),
+                    ),
+                  ] else ...[
+                    const Text('Enter your new PIN below:'),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: newPinController,
+                      obscureText: true,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(labelText: 'New PIN'),
+                    ),
+                    TextField(
+                      controller: confirmPinController,
+                      obscureText: true,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(labelText: 'Confirm New PIN'),
+                    ),
+                  ]
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () async {
+                    if (!codeValidated) {
+                      final input = phoneController.text.trim();
+                      if (AuthService.instance.validateRecoveryCode(input)) {
+                        setState(() {
+                          codeValidated = true;
+                        });
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Invalid recovery number.')),
+                        );
+                      }
+                    } else {
+                      final newPin = newPinController.text.trim();
+                      final confirmPin = confirmPinController.text.trim();
+                      if (newPin.isEmpty || newPin == '0000') {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Please enter a secure non-default PIN.')),
+                        );
+                        return;
+                      }
+                      if (newPin != confirmPin) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('PINs do not match.')),
+                        );
+                        return;
+                      }
+                      if (newPin.length < AppConstants.minPinLength) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('PIN must be at least ${AppConstants.minPinLength} digits.')),
+                        );
+                        return;
+                      }
+                      await AuthService.instance.forceResetPin(newPin);
+                      if (context.mounted) {
+                        Navigator.of(context).pop();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('PIN successfully reset! Login with your new PIN.')),
+                        );
+                      }
+                    }
+                  },
+                  child: Text(codeValidated ? 'Reset PIN' : 'Verify'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
   }
 
   void _showError(String message) {
@@ -230,6 +409,19 @@ class _LoginScreenState extends State<LoginScreen>
                             )
                           : const SizedBox.shrink(),
                     ),
+                    const SizedBox(height: 16),
+                    TextButton(
+                      onPressed: _showForgotPinDialog,
+                      child: const Text(
+                        'Forgot PIN?',
+                        style: TextStyle(
+                          color: AppColors.primaryGreen,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                    const Spacer(),
 
                     // Footer
                     Padding(

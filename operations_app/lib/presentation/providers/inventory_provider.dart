@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../data/db/database_helper.dart';
 import '../../data/models/models.dart';
+import '../../data/services/sync_service.dart';
 
 class InventoryProvider with ChangeNotifier {
   List<InventoryItem> _inventory = [];
@@ -22,12 +23,18 @@ class InventoryProvider with ChangeNotifier {
 
   Future<void> updateStock(String id, double newQuantity) async {
     await DatabaseHelper.instance.update('inventory', {'quantity': newQuantity}, id);
+    await SyncService.instance.enqueue('/api/inventory/$id', 'PUT', {'quantity': newQuantity});
     await loadInventory();
   }
 
   Future<void> addInventoryItem(String name, double quantity) async {
     final item = InventoryItem(itemName: name, quantity: quantity);
-    await DatabaseHelper.instance.insert('inventory', item.toMap());
+    final id = await DatabaseHelper.instance.insert('inventory', item.toMap());
+    await SyncService.instance.enqueue('/api/inventory', 'POST', {
+      'id': id,
+      'itemName': name,
+      'quantity': quantity,
+    });
     await loadInventory();
   }
 }

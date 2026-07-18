@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../data/db/database_helper.dart';
 import '../../data/models/models.dart';
+import '../../data/services/sync_service.dart';
 
 class AppProvider with ChangeNotifier {
   final DatabaseHelper _db = DatabaseHelper.instance;
@@ -124,6 +125,7 @@ class AppProvider with ChangeNotifier {
         if (matchingInventory.id != null) {
           final newQty = (matchingInventory.quantity - orderItem.quantity).clamp(0.0, double.infinity);
           await _db.update('inventory', {'quantity': newQty}, matchingInventory.id!);
+          await SyncService.instance.enqueue('/api/inventory/${matchingInventory.id}', 'PUT', {'quantity': newQty});
         }
       } catch (_) {
         // No matching item in inventory to deduct, ignore silently or log
@@ -150,5 +152,11 @@ class AppProvider with ChangeNotifier {
   Future<void> addExpense(String title, double amount) async {
     await _db.insert('expenses', Expense(title: title, amount: amount, date: DateTime.now()).toMap());
     await loadExpenses();
+  }
+
+  ValueNotifier<SyncState> get syncNotifier => SyncService.instance.stateNotifier;
+
+  Future<void> triggerSync() async {
+    await SyncService.instance.syncPendingItems();
   }
 }

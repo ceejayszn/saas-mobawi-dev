@@ -197,7 +197,7 @@ https://pub.dev/packages/printing
 
   // No default PIN — users must create their own during first-run setup.
   // This empty value triggers the first-run onboarding flow in AuthService.
-  static const String defaultAdminPin = '';
+  static const String defaultAdminPin = '0000';
 
   // Security questions
   static const List<String> securityQuestions = [

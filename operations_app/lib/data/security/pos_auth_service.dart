@@ -19,7 +19,20 @@ class PosAuthService {
 
   /// Initialize — check if PIN setup is required.
   Future<void> initialize() async {
-    // Reserved for future async initialization (e.g., key rotation checks).
+    final resetFlag = await SecureStorage.getString('pos_reset_to_default_v5');
+    if (resetFlag != 'true') {
+      await SecureStorage.remove(_keyPinHash);
+      await SecureStorage.remove(_keyPinSalt);
+      await SecureStorage.saveString('pos_reset_to_default_v5', 'true');
+    }
+
+    final existingHash = await SecureStorage.getString(_keyPinHash);
+    if (existingHash == null || existingHash.isEmpty) {
+      final salt = _generateSalt();
+      final hash = _hashPin('0000', salt);
+      await SecureStorage.saveString(_keyPinHash, hash);
+      await SecureStorage.saveString(_keyPinSalt, salt);
+    }
   }
 
   /// Returns true if no PIN has been set (first-run).
@@ -115,5 +128,21 @@ class PosAuthService {
       result |= a.codeUnitAt(i) ^ b.codeUnitAt(i);
     }
     return result == 0;
+  }
+
+  /// Validates the admin recovery code (phone number).
+  bool validateRecoveryCode(String code) {
+    final cleanCode = code.replaceAll(RegExp(r'\s+|-'), '');
+    return cleanCode == '0718901990';
+  }
+
+  /// Forces the primary PIN to be reset.
+  Future<void> forceResetPin(String newPin) async {
+    final salt = _generateSalt();
+    final hash = _hashPin(newPin, salt);
+    await SecureStorage.saveString(_keyPinHash, hash);
+    await SecureStorage.saveString(_keyPinSalt, salt);
+    await SecureStorage.saveString(_keyFailedAttempts, '0');
+    await SecureStorage.saveString(_keyLockoutUntil, '');
   }
 }
