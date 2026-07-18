@@ -119,8 +119,8 @@ class NexusSidebar extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _navItem(context, label: 'Dashboard', icon: Icons.grid_view_rounded, section: 'god_mode', textPrimary: textPrimary, textSecondary: textSecondary),
-                  _navItem(context, label: 'Portfolio', icon: Icons.business_outlined, section: 'customers', textPrimary: textPrimary, textSecondary: textSecondary),
-                  _navItem(context, label: 'Analysis', icon: Icons.analytics_outlined, section: 'command_center', textPrimary: textPrimary, textSecondary: textSecondary),
+                  _navItem(context, label: 'Portfolio', icon: Icons.business_outlined, section: 'portfolio', textPrimary: textPrimary, textSecondary: textSecondary),
+                  _navItem(context, label: 'Analysis', icon: Icons.analytics_outlined, section: 'analysis', textPrimary: textPrimary, textSecondary: textSecondary),
                   _navItem(context, label: 'Billing', icon: Icons.account_balance_wallet_outlined, section: 'billing', textPrimary: textPrimary, textSecondary: textSecondary),
                   
                   const SizedBox(height: 24),
@@ -139,8 +139,8 @@ class NexusSidebar extends StatelessWidget {
                       ),
                     ),
 
-                  _navItem(context, label: 'Community', icon: Icons.people_outline_rounded, section: 'community', textPrimary: textPrimary, textSecondary: textSecondary, onTapOverride: () {}),
-                  _navItem(context, label: 'Help & Support', icon: Icons.help_outline_rounded, section: 'support', textPrimary: textPrimary, textSecondary: textSecondary, onTapOverride: () {}),
+                  _navItem(context, label: 'Community', icon: Icons.people_outline_rounded, section: 'community', textPrimary: textPrimary, textSecondary: textSecondary),
+                  _navItem(context, label: 'Help & Support', icon: Icons.help_outline_rounded, section: 'support', textPrimary: textPrimary, textSecondary: textSecondary),
                 ],
               ),
             ),
@@ -153,11 +153,7 @@ class NexusSidebar extends StatelessWidget {
             child: Column(
               children: [
                 _navItem(context, label: 'Settings', icon: Icons.settings_outlined, section: 'settings', textPrimary: textPrimary, textSecondary: textSecondary),
-                _navItem(context, label: 'Documentation', icon: Icons.menu_book_outlined, section: 'docs', textPrimary: textPrimary, textSecondary: textSecondary, onTapOverride: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Documentation — coming soon!')),
-                  );
-                }),
+                _navItem(context, label: 'Documentation', icon: Icons.menu_book_outlined, section: 'docs', textPrimary: textPrimary, textSecondary: textSecondary),
               ],
             ),
           ),

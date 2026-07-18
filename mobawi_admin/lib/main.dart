@@ -4,6 +4,7 @@ import 'core/widgets/sidebar/nexus_sidebar.dart';
 import 'core/widgets/common/command_palette.dart';
 import 'core/services/nexus_api.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import 'features/home/god_mode_screen.dart';
 import 'features/command_center/command_center_screen.dart';
@@ -11,6 +12,11 @@ import 'features/products/products_screen.dart';
 import 'features/customers/customers_screen.dart';
 import 'features/billing/billing_screen.dart';
 import 'features/settings/settings_screen.dart';
+import 'features/portfolio/portfolio_screen.dart';
+import 'features/analysis/analysis_screen.dart';
+import 'features/community/community_screen.dart';
+import 'features/support/support_screen.dart';
+import 'features/docs/docs_screen.dart';
 
 
 import 'package:shared_preferences/shared_preferences.dart';
@@ -60,7 +66,6 @@ class _NexusShellState extends State<NexusShell> {
   String _activeSection = 'god_mode';
   bool _isSidebarCollapsed = false;
   final NexusApi _api = NexusApi();
-  String _currentWorkspace = 'Mobawi Main';
 
   @override
   void initState() {
@@ -73,22 +78,6 @@ class _NexusShellState extends State<NexusShell> {
   void dispose() {
     _api.stopStreaming();
     super.dispose();
-  }
-
-  void _showCommandPalette() {
-    showDialog(
-      context: context,
-      builder: (context) => CommandPalette(
-        onActionSelected: (action) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Executing Command: $action'),
-              backgroundColor: Theme.of(context).primaryColor,
-            ),
-          );
-        },
-      ),
-    );
   }
 
   Widget _buildActiveScreen() {
@@ -105,6 +94,16 @@ class _NexusShellState extends State<NexusShell> {
         return BillingScreen(onNavigate: (sec) => setState(() => _activeSection = sec));
       case 'settings':
         return SettingsScreen(onNavigate: (sec) => setState(() => _activeSection = sec));
+      case 'portfolio':
+        return PortfolioScreen(onNavigate: (sec) => setState(() => _activeSection = sec));
+      case 'analysis':
+        return AnalysisScreen(onNavigate: (sec) => setState(() => _activeSection = sec));
+      case 'community':
+        return CommunityScreen(onNavigate: (sec) => setState(() => _activeSection = sec));
+      case 'support':
+        return SupportScreen(onNavigate: (sec) => setState(() => _activeSection = sec));
+      case 'docs':
+        return DocsScreen(onNavigate: (sec) => setState(() => _activeSection = sec));
       default:
         return GodModeScreen(onNavigate: (sec) => setState(() => _activeSection = sec));
     }
@@ -134,73 +133,39 @@ class _NexusShellState extends State<NexusShell> {
             ),
             child: Row(
               children: [
-                // Mobawi Logo
-                Icon(
-                  Icons.space_dashboard_outlined,
-                  color: theme.primaryColor,
-                  size: 24,
-                ),
-                const SizedBox(width: 12),
-                // Workspace Selector
-                DropdownButtonHideUnderline(
-                  child: DropdownButton<String>(
-                    value: _currentWorkspace,
-                    dropdownColor: theme.cardColor,
-                    style: TextStyle(
-                      color: isDark ? NexusTheme.textPrimary : NexusTheme.lightTextPrimary,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                    ),
-                    items: <String>['Mobawi Main', 'SaaS Mobawi Dev', 'Staging Workspace'].map((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value),
-                      );
-                    }).toList(),
-                    onChanged: (newValue) {
-                      if (newValue != null) {
-                        setState(() {
-                          _currentWorkspace = newValue;
-                        });
-                      }
-                    },
+                // Company Logo
+                Image.asset(
+                  'assets/logo.png',
+                  width: 32,
+                  height: 32,
+                  fit: BoxFit.contain,
+                  errorBuilder: (context, error, stackTrace) => Icon(
+                    Icons.diamond_outlined,
+                    color: theme.primaryColor,
+                    size: 28,
                   ),
                 ),
-                const SizedBox(width: 24),
-                // Search Trigger Bar
-                Expanded(
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: InkWell(
-                      onTap: _showCommandPalette,
-                      borderRadius: BorderRadius.circular(8),
-                      child: Container(
-                        width: 320,
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: theme.scaffoldBackgroundColor,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: borderSideColor),
+                const Spacer(),
+                // Centered Stylish Name
+                Text(
+                  'MOBAWI SAAS LLC',
+                  style: GoogleFonts.orbitron(
+                    textStyle: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 3,
+                      color: isDark ? Colors.white : Colors.black87,
+                      shadows: [
+                        Shadow(
+                          color: theme.primaryColor.withValues(alpha: 0.5),
+                          blurRadius: 10,
+                          offset: const Offset(0, 2),
                         ),
-                        child: Row(
-                          children: [
-                            Icon(Icons.search, size: 16, color: textSecondary),
-                            const SizedBox(width: 12),
-                            Text(
-                              'Search actions, systems...',
-                              style: TextStyle(color: textSecondary.withValues(alpha: 0.6), fontSize: 13),
-                            ),
-                            const Spacer(),
-                            Text(
-                              'Ctrl+K',
-                              style: TextStyle(color: textSecondary.withValues(alpha: 0.4), fontSize: 11, fontWeight: FontWeight.bold),
-                            ),
-                          ],
-                        ),
-                      ),
+                      ],
                     ),
                   ),
                 ),
+                const Spacer(),
                 // Notifications Bell
                 IconButton(
                   icon: Icon(Icons.notifications_none_outlined, color: textSecondary),

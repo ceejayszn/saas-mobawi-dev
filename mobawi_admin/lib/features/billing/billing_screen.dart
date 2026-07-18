@@ -25,7 +25,7 @@ class _BillingScreenState extends State<BillingScreen> with SingleTickerProvider
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
     _loadBillingData();
   }
 
@@ -177,6 +177,7 @@ class _BillingScreenState extends State<BillingScreen> with SingleTickerProvider
                   Tab(text: 'Subscriptions'),
                   Tab(text: 'Invoices'),
                   Tab(text: 'Payment History'),
+                  Tab(text: 'License Generator'),
                 ],
               ),
             ],
@@ -192,6 +193,7 @@ class _BillingScreenState extends State<BillingScreen> with SingleTickerProvider
               _buildSubscriptionsTab(subscriptions),
               _buildInvoicesTab(invoices),
               _buildPaymentsTab(payments),
+              _buildLicenseTab(),
             ],
           ),
         ),
@@ -418,6 +420,135 @@ class _BillingScreenState extends State<BillingScreen> with SingleTickerProvider
       child: Text(
         status.toString().toUpperCase(),
         style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.bold),
+      ),
+    );
+  }
+
+  String _selectedApp = 'Natty Gym';
+  String _selectedDuration = '1 Year';
+  String _generatedLicense = '';
+
+  Widget _buildLicenseTab() {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final borderSideColor = isDark ? NexusTheme.border : NexusTheme.lightBorder;
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(32),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Generate Application License', style: theme.textTheme.titleLarge),
+          const SizedBox(height: 8),
+          const Text('Create an encrypted, time-limited license key that can be verified by the offline POS apps.', style: TextStyle(color: NexusTheme.textMuted)),
+          const SizedBox(height: 32),
+          NexusCard(
+            padding: const EdgeInsets.all(32),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Target Application', style: TextStyle(fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 12),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            decoration: BoxDecoration(
+                              border: Border.all(color: borderSideColor),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: DropdownButtonHideUnderline(
+                              child: DropdownButton<String>(
+                                value: _selectedApp,
+                                isExpanded: true,
+                                dropdownColor: theme.cardColor,
+                                items: ['Natty Gym', 'Delights Juice Shop', 'Felixpinski Hotel', 'Custom App'].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+                                onChanged: (v) => setState(() => _selectedApp = v!),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 32),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Duration', style: TextStyle(fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 12),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            decoration: BoxDecoration(
+                              border: Border.all(color: borderSideColor),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: DropdownButtonHideUnderline(
+                              child: DropdownButton<String>(
+                                value: _selectedDuration,
+                                isExpanded: true,
+                                dropdownColor: theme.cardColor,
+                                items: ['1 Day', '48 Hours', '2 Weeks', '1 Year', 'Custom'].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+                                onChanged: (v) => setState(() => _selectedDuration = v!),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 32),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    final timestamp = DateTime.now().millisecondsSinceEpoch;
+                    setState(() {
+                      _generatedLicense = 'MBW-${_selectedApp.substring(0, 3).toUpperCase()}-${timestamp.toString().substring(6)}-${_selectedDuration.replaceAll(" ", "")}';
+                    });
+                  },
+                  icon: const Icon(Icons.key, color: Colors.white),
+                  label: const Text('Generate Secret Code', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: NexusTheme.accent,
+                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
+                  ),
+                ),
+                if (_generatedLicense.isNotEmpty) ...[
+                  const SizedBox(height: 32),
+                  const Divider(),
+                  const SizedBox(height: 24),
+                  const Text('Generated Encrypted License', style: TextStyle(fontWeight: FontWeight.bold, color: NexusTheme.success)),
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: NexusTheme.success.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: NexusTheme.success.withValues(alpha: 0.3)),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(_generatedLicense, style: const TextStyle(fontFamily: 'JetBrains Mono', fontSize: 24, fontWeight: FontWeight.bold, letterSpacing: 2)),
+                        IconButton(
+                          icon: const Icon(Icons.copy, color: NexusTheme.success),
+                          onPressed: () {
+                            Clipboard.setData(ClipboardData(text: _generatedLicense));
+                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('License copied to clipboard!')));
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
