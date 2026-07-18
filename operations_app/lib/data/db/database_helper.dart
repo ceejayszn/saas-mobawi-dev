@@ -11,7 +11,7 @@ class DatabaseHelper {
 
   Future<Database> get database async {
     if (_database != null) return _database!;
-    _database = await _initDB('euton_hotel.db');
+    _database = await _initDB('copy_app.db');
     await _createMissingTables(_database!);
     return _database!;
   }
@@ -36,20 +36,20 @@ class DatabaseHelper {
     
     // Seed data with UUIDs
     final now = DateTime.now().toIso8601String();
-    await db.insert('menu_items', {'id': generateUuid(), 'name': 'Tea', 'price': 20.0, 'is_active': 1, 'business_id': '', 'created_at': now, 'updated_at': now});
-    await db.insert('menu_items', {'id': generateUuid(), 'name': 'Coffee', 'price': 30.0, 'is_active': 1, 'business_id': '', 'created_at': now, 'updated_at': now});
-    await db.insert('menu_items', {'id': generateUuid(), 'name': 'Chapati', 'price': 15.0, 'is_active': 1, 'business_id': '', 'created_at': now, 'updated_at': now});
-    await db.insert('menu_items', {'id': generateUuid(), 'name': 'Ugali Beans', 'price': 70.0, 'is_active': 1, 'business_id': '', 'created_at': now, 'updated_at': now});
+    await db.insert('products', {'id': generateUuid(), 'name': 'Tea', 'price': 20.0, 'is_active': 1, 'business_id': '', 'created_at': now, 'updated_at': now});
+    await db.insert('products', {'id': generateUuid(), 'name': 'Coffee', 'price': 30.0, 'is_active': 1, 'business_id': '', 'created_at': now, 'updated_at': now});
+    await db.insert('products', {'id': generateUuid(), 'name': 'Chapati', 'price': 15.0, 'is_active': 1, 'business_id': '', 'created_at': now, 'updated_at': now});
+    await db.insert('products', {'id': generateUuid(), 'name': 'Ugali Beans', 'price': 70.0, 'is_active': 1, 'business_id': '', 'created_at': now, 'updated_at': now});
   }
 
   Future _onUpgrade(Database db, int oldVersion, int newVersion) async {
     if (oldVersion < 5) {
       // Full rebuild for pre-UUID schemas
-      await db.execute('DROP TABLE IF EXISTS order_items');
-      await db.execute('DROP TABLE IF EXISTS orders');
-      await db.execute('DROP TABLE IF EXISTS outside_order_items');
-      await db.execute('DROP TABLE IF EXISTS outside_orders');
-      await db.execute('DROP TABLE IF EXISTS menu_items');
+      await db.execute('DROP TABLE IF EXISTS sale_items');
+      await db.execute('DROP TABLE IF EXISTS sales');
+      await db.execute('DROP TABLE IF EXISTS outside_sale_items');
+      await db.execute('DROP TABLE IF EXISTS sales');
+      await db.execute('DROP TABLE IF EXISTS products');
       await db.execute('DROP TABLE IF EXISTS expenses');
       await db.execute('DROP TABLE IF EXISTS inventory');
       await db.execute('DROP TABLE IF EXISTS audit_logs');
@@ -58,15 +58,15 @@ class DatabaseHelper {
       // v5 → v6: Add audit columns and business_id to existing tables.
       // Using ALTER TABLE for non-destructive migration.
       final alterations = <String>[
-        'ALTER TABLE menu_items ADD COLUMN business_id TEXT NOT NULL DEFAULT ""',
-        'ALTER TABLE menu_items ADD COLUMN created_at TEXT NOT NULL DEFAULT ""',
-        'ALTER TABLE menu_items ADD COLUMN updated_at TEXT NOT NULL DEFAULT ""',
-        'ALTER TABLE orders ADD COLUMN business_id TEXT NOT NULL DEFAULT ""',
-        'ALTER TABLE orders ADD COLUMN updated_at TEXT NOT NULL DEFAULT ""',
-        'ALTER TABLE order_items ADD COLUMN created_at TEXT NOT NULL DEFAULT ""',
-        'ALTER TABLE outside_orders ADD COLUMN business_id TEXT NOT NULL DEFAULT ""',
-        'ALTER TABLE outside_orders ADD COLUMN updated_at TEXT NOT NULL DEFAULT ""',
-        'ALTER TABLE outside_order_items ADD COLUMN created_at TEXT NOT NULL DEFAULT ""',
+        'ALTER TABLE products ADD COLUMN business_id TEXT NOT NULL DEFAULT ""',
+        'ALTER TABLE products ADD COLUMN created_at TEXT NOT NULL DEFAULT ""',
+        'ALTER TABLE products ADD COLUMN updated_at TEXT NOT NULL DEFAULT ""',
+        'ALTER TABLE sales ADD COLUMN business_id TEXT NOT NULL DEFAULT ""',
+        'ALTER TABLE sales ADD COLUMN updated_at TEXT NOT NULL DEFAULT ""',
+        'ALTER TABLE sale_items ADD COLUMN created_at TEXT NOT NULL DEFAULT ""',
+        'ALTER TABLE sales ADD COLUMN business_id TEXT NOT NULL DEFAULT ""',
+        'ALTER TABLE sales ADD COLUMN updated_at TEXT NOT NULL DEFAULT ""',
+        'ALTER TABLE outside_sale_items ADD COLUMN created_at TEXT NOT NULL DEFAULT ""',
         'ALTER TABLE expenses ADD COLUMN business_id TEXT NOT NULL DEFAULT ""',
         'ALTER TABLE expenses ADD COLUMN created_at TEXT NOT NULL DEFAULT ""',
         'ALTER TABLE expenses ADD COLUMN updated_at TEXT NOT NULL DEFAULT ""',
@@ -88,7 +88,7 @@ class DatabaseHelper {
 
   Future<void> _createMissingTables(Database db) async {
     await db.execute('''
-      CREATE TABLE IF NOT EXISTS menu_items (
+      CREATE TABLE IF NOT EXISTS products (
         id TEXT PRIMARY KEY,
         name TEXT NOT NULL,
         price REAL NOT NULL,
@@ -100,11 +100,15 @@ class DatabaseHelper {
     ''');
 
     await db.execute('''
-      CREATE TABLE IF NOT EXISTS orders (
+      CREATE TABLE IF NOT EXISTS sales (
         id TEXT PRIMARY KEY,
-        total REAL NOT NULL,
+        amount REAL NOT NULL,
         status TEXT NOT NULL,
         payment_method TEXT NOT NULL,
+        type TEXT NOT NULL DEFAULT 'In-Store',
+        customer_name TEXT,
+        location TEXT,
+        user TEXT,
         business_id TEXT NOT NULL DEFAULT '',
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL DEFAULT ''
@@ -112,42 +116,15 @@ class DatabaseHelper {
     ''');
 
     await db.execute('''
-      CREATE TABLE IF NOT EXISTS order_items (
+      CREATE TABLE IF NOT EXISTS sale_items (
         id TEXT PRIMARY KEY,
-        order_id TEXT NOT NULL,
+        sale_id TEXT NOT NULL,
         item_id TEXT NOT NULL,
         item_name TEXT NOT NULL,
         quantity INTEGER NOT NULL,
         price REAL NOT NULL,
         created_at TEXT NOT NULL DEFAULT '',
-        FOREIGN KEY (order_id) REFERENCES orders (id) ON DELETE CASCADE
-      )
-    ''');
-
-    await db.execute('''
-      CREATE TABLE IF NOT EXISTS outside_orders (
-        id TEXT PRIMARY KEY,
-        customer_name TEXT NOT NULL,
-        location TEXT NOT NULL,
-        total REAL NOT NULL,
-        status TEXT NOT NULL,
-        payment_method TEXT NOT NULL,
-        business_id TEXT NOT NULL DEFAULT '',
-        created_at TEXT NOT NULL,
-        updated_at TEXT NOT NULL DEFAULT ''
-      )
-    ''');
-
-    await db.execute('''
-      CREATE TABLE IF NOT EXISTS outside_order_items (
-        id TEXT PRIMARY KEY,
-        outside_order_id TEXT NOT NULL,
-        item_id TEXT NOT NULL,
-        item_name TEXT NOT NULL,
-        quantity INTEGER NOT NULL,
-        price REAL NOT NULL,
-        created_at TEXT NOT NULL DEFAULT '',
-        FOREIGN KEY (outside_order_id) REFERENCES outside_orders (id) ON DELETE CASCADE
+        FOREIGN KEY (sale_id) REFERENCES sales (id) ON DELETE CASCADE
       )
     ''');
 
@@ -156,9 +133,11 @@ class DatabaseHelper {
         id TEXT PRIMARY KEY,
         title TEXT NOT NULL,
         amount REAL NOT NULL,
+        category TEXT NOT NULL DEFAULT 'Other',
         date TEXT NOT NULL,
         account_name TEXT DEFAULT 'General',
         status TEXT DEFAULT 'Settled',
+        user TEXT NOT NULL DEFAULT 'Admin',
         business_id TEXT NOT NULL DEFAULT '',
         created_at TEXT NOT NULL DEFAULT '',
         updated_at TEXT NOT NULL DEFAULT ''
@@ -205,11 +184,11 @@ class DatabaseHelper {
     ''');
 
     // ── Indexes for query performance ──────────────────────────────────────
-    await db.execute('CREATE INDEX IF NOT EXISTS idx_orders_created_at ON orders (created_at)');
-    await db.execute('CREATE INDEX IF NOT EXISTS idx_orders_business_id ON orders (business_id)');
-    await db.execute('CREATE INDEX IF NOT EXISTS idx_order_items_order_id ON order_items (order_id)');
-    await db.execute('CREATE INDEX IF NOT EXISTS idx_outside_orders_status ON outside_orders (status)');
-    await db.execute('CREATE INDEX IF NOT EXISTS idx_outside_orders_created_at ON outside_orders (created_at)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_orders_created_at ON sales (created_at)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_orders_business_id ON sales (business_id)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_sale_items_order_id ON sale_items (order_id)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_sales_status ON sales (status)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_sales_created_at ON sales (created_at)');
     await db.execute('CREATE INDEX IF NOT EXISTS idx_expenses_date ON expenses (date)');
     await db.execute('CREATE INDEX IF NOT EXISTS idx_expenses_business_id ON expenses (business_id)');
     await db.execute('CREATE INDEX IF NOT EXISTS idx_audit_logs_timestamp ON audit_logs (timestamp)');
@@ -267,112 +246,112 @@ class DatabaseHelper {
     await db.rawUpdate('UPDATE sync_queue SET attempts = attempts + 1 WHERE id = ?', [id]);
   }
 
-  Future<String> insertOrder(Order order, List<OrderItem> items) async {
-    return await createOrder(order, items);
+  Future<String> insertOrder(Sale sale, List<SaleItem> items) async {
+    return await createOrder(sale, items);
   }
 
   // --- MENU ITEMS ---
-  Future<String> insertMenuItem(MenuItem item) async {
+  Future<String> insertProduct(Product item) async {
     final db = await database;
     final id = item.id ?? generateUuid();
     final itemMap = item.toMap();
     itemMap['id'] = id;
-    await db.insert('menu_items', itemMap);
+    await db.insert('products', itemMap);
     return id;
   }
 
-  Future<List<MenuItem>> getMenuItems() async {
+  Future<List<Product>> getProducts() async {
     final db = await database;
-    final result = await db.query('menu_items');
-    return result.map((json) => MenuItem.fromMap(json)).toList();
+    final result = await db.query('products');
+    return result.map((json) => Product.fromMap(json)).toList();
   }
   
-  Future<int> updateMenuItem(MenuItem item) async {
+  Future<int> updateProduct(Product item) async {
     final db = await database;
-    return await db.update('menu_items', item.toMap(), where: 'id = ?', whereArgs: [item.id]);
+    return await db.update('products', item.toMap(), where: 'id = ?', whereArgs: [item.id]);
   }
 
   // --- ORDERS ---
-  Future<String> createOrder(Order order, List<OrderItem> items) async {
+  Future<String> createOrder(Sale sale, List<SaleItem> items) async {
     final db = await database;
-    final orderId = order.id ?? generateUuid();
+    final orderId = sale.id ?? generateUuid();
     return await db.transaction((txn) async {
-      final orderMap = order.toMap();
+      final orderMap = sale.toMap();
       orderMap['id'] = orderId;
-      await txn.insert('orders', orderMap);
+      await txn.insert('sales', orderMap);
       for (var item in items) {
         final itemId = item.id ?? generateUuid();
         final itemMap = item.toMap();
         itemMap['id'] = itemId;
         itemMap['order_id'] = orderId;
-        await txn.insert('order_items', itemMap);
+        await txn.insert('sale_items', itemMap);
       }
       return orderId;
     });
   }
 
-  Future<List<Order>> getDailyOrders(String date) async {
+  Future<List<Sale>> getDailyOrders(String date) async {
     final db = await database;
-    final result = await db.query('orders', where: "strftime('%Y-%m-%d', created_at) = ?", whereArgs: [date]);
-    return result.map((json) => Order.fromMap(json)).toList();
+    final result = await db.query('sales', where: "strftime('%Y-%m-%d', created_at) = ?", whereArgs: [date]);
+    return result.map((json) => Sale.fromMap(json)).toList();
   }
 
-  Future<List<Order>> getOrdersBetween(DateTime start, DateTime end) async {
+  Future<List<Sale>> getOrdersBetween(DateTime start, DateTime end) async {
     final db = await database;
     final result = await db.query(
-      'orders',
+      'sales',
       where: 'created_at >= ? AND created_at <= ?',
       whereArgs: [start.toIso8601String(), end.toIso8601String()],
       orderBy: 'created_at DESC',
     );
-    return result.map((json) => Order.fromMap(json)).toList();
+    return result.map((json) => Sale.fromMap(json)).toList();
   }
 
-  Future<String> createOutsideOrder(OutsideOrder order, List<OrderItem> items) async {
+  Future<String> createSale(Sale sale, List<SaleItem> items) async {
     final db = await database;
-    final outsideOrderId = order.id ?? generateUuid();
+    final outsideOrderId = sale.id ?? generateUuid();
     return await db.transaction((txn) async {
-      final orderMap = order.toMap();
+      final orderMap = sale.toMap();
       orderMap['id'] = outsideOrderId;
-      await txn.insert('outside_orders', orderMap);
+      await txn.insert('sales', orderMap);
       for (final item in items) {
         final itemId = item.id ?? generateUuid();
         final itemMap = item.toMap();
         itemMap['id'] = itemId;
         itemMap.remove('order_id');
         itemMap['outside_order_id'] = outsideOrderId;
-        await txn.insert('outside_order_items', itemMap);
+        await txn.insert('outside_sale_items', itemMap);
       }
       return outsideOrderId;
     });
   }
 
-  Future<List<OutsideOrder>> getOutsideOrdersByStatus(String status) async {
+  Future<List<Sale>> getSalesByStatus(String status) async {
     final db = await database;
     final result = await db.query(
-      'outside_orders',
+      'sales',
       where: 'LOWER(status) = ?',
       whereArgs: [status.toLowerCase()],
       orderBy: 'created_at DESC',
     );
-    return result.map((json) => OutsideOrder.fromMap(json)).toList();
+    return result.map((json) => Sale.fromMap(json)).toList();
   }
 
-  Future<List<OutsideOrder>> getOutsideOrdersBetween(DateTime start, DateTime end) async {
+  Future<List<Sale>> getSalesBetween(DateTime start, DateTime end) async {
     final db = await database;
     final result = await db.query(
-      'outside_orders',
+      'sales',
       where: 'created_at >= ? AND created_at <= ?',
       whereArgs: [start.toIso8601String(), end.toIso8601String()],
       orderBy: 'created_at DESC',
     );
-    return result.map((json) => OutsideOrder.fromMap(json)).toList();
+    return result.map((json) => Sale.fromMap(json)).toList();
   }
 
-  Future<void> markOutsideOrderPaid(String orderId, {String paymentMethod = 'Cash'}) async {
+  Future<void> markSalePaid(String orderId, {String paymentMethod = 'Cash'}) async {
     final db = await database;
     await db.update(
-      'outside_orders',
+      'sales',
       {
         'status': 'Paid',
         'payment_method': paymentMethod,
@@ -382,10 +361,10 @@ class DatabaseHelper {
     );
   }
 
-  Future<void> updateOutsideOrderStatus(String orderId, String status) async {
+  Future<void> updateSaleStatus(String orderId, String status) async {
     final db = await database;
     await db.update(
-      'outside_orders',
+      'sales',
       {
         'status': status,
       },
@@ -398,20 +377,20 @@ class DatabaseHelper {
     final db = await database;
     return db.rawQuery(
       '''
-      SELECT item_name, SUM(quantity) AS quantity, SUM(quantity * price) AS total
+      SELECT item_name, SUM(quantity) AS quantity, SUM(quantity * price) AS amount
       FROM (
         SELECT oi.item_name, oi.quantity, oi.price, o.created_at
-        FROM order_items oi
-        INNER JOIN orders o ON o.id = oi.order_id
+        FROM sale_items oi
+        INNER JOIN sales o ON o.id = oi.order_id
         WHERE o.created_at >= ? AND o.created_at <= ?
         UNION ALL
         SELECT ooi.item_name, ooi.quantity, ooi.price, oo.created_at
-        FROM outside_order_items ooi
-        INNER JOIN outside_orders oo ON oo.id = ooi.outside_order_id
+        FROM outside_sale_items ooi
+        INNER JOIN sales oo ON oo.id = ooi.outside_order_id
         WHERE oo.created_at >= ? AND oo.created_at <= ? AND LOWER(oo.status) = 'paid'
       )
       GROUP BY item_name
-      ORDER BY total DESC, quantity DESC, item_name ASC
+      ORDER BY amount DESC, quantity DESC, item_name ASC
       ''',
       [
         start.toIso8601String(),
@@ -452,10 +431,10 @@ class DatabaseHelper {
   Future<List<Map<String, dynamic>>> getFrequentCustomers() async {
     final db = await database;
     return await db.rawQuery('''
-      SELECT customer_name, MAX(location) as last_location, COUNT(*) as total_orders, SUM(total) as total_spent
-      FROM outside_orders
+      SELECT customer_name, MAX(location) as last_location, COUNT(*) as amount_orders, SUM(amount) as amount_spent
+      FROM sales
       GROUP BY customer_name
-      ORDER BY total_orders DESC
+      ORDER BY amount_orders DESC
     ''');
   }
 }

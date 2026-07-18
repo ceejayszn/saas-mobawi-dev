@@ -1,46 +1,45 @@
-import '../models/order.dart';
-import '../models/order_item.dart';
-import '../models/outside_order.dart';
+import '../models/sale.dart';
+import '../models/sale_item.dart';
 import 'i_order_repository.dart';
 
 class ApiOrderRepository implements IOrderRepository {
   @override
-  Future<String> createOrder(Order order, List<OrderItem> items) {
+  Future<String> createOrder(Sale sale, List<SaleItem> items) {
     throw UnimplementedError('API implementation pending');
   }
 
   @override
-  Future<List<Order>> getDailyOrders(String date) {
+  Future<List<Sale>> getDailyOrders(String date) {
     throw UnimplementedError('API implementation pending');
   }
 
   @override
-  Future<List<Order>> getOrdersBetween(DateTime start, DateTime end) {
+  Future<List<Sale>> getOrdersBetween(DateTime start, DateTime end) {
     throw UnimplementedError('API implementation pending');
   }
 
   @override
-  Future<String> createOutsideOrder(OutsideOrder order, List<OrderItem> items) {
+  Future<String> createSale(Sale sale, List<SaleItem> items) {
     throw UnimplementedError('API implementation pending');
   }
 
   @override
-  Future<List<OutsideOrder>> getOutsideOrdersByStatus(String status) {
+  Future<List<Sale>> getSalesByStatus(String status) {
     throw UnimplementedError('API implementation pending');
   }
 
   @override
-  Future<List<OutsideOrder>> getOutsideOrdersBetween(DateTime start, DateTime end) {
+  Future<List<Sale>> getSalesBetween(DateTime start, DateTime end) {
     throw UnimplementedError('API implementation pending');
   }
 
   @override
-  Future<void> markOutsideOrderPaid(String orderId, {String paymentMethod = 'Cash'}) {
+  Future<void> markSalePaid(String orderId, {String paymentMethod = 'Cash'}) {
     throw UnimplementedError('API implementation pending');
   }
 
   @override
-  Future<void> updateOutsideOrderStatus(String orderId, String status) {
+  Future<void> updateSaleStatus(String orderId, String status) {
     throw UnimplementedError('API implementation pending');
   }
 

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../providers/expense_provider.dart';
 import '../../widgets/custom_widgets.dart';
 import '../../theme/app_colors.dart';
+import '../../widgets/global_header.dart';
 
 class ExpensesScreen extends StatefulWidget {
   const ExpensesScreen({super.key});
@@ -12,7 +13,8 @@ class ExpensesScreen extends StatefulWidget {
 }
 
 class _ExpensesScreenState extends State<ExpensesScreen> {
-  String? _selectedAccount; // null means show account list, otherwise show account details
+  String?
+  _selectedAccount; // null means show account list, otherwise show account details
 
   @override
   void initState() {
@@ -27,36 +29,49 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
     final provider = context.watch<ExpenseProvider>();
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          _selectedAccount == null ? 'Expense Accounts' : 'Account: $_selectedAccount',
-        ),
-        leading: _selectedAccount != null
-            ? IconButton(
-                icon: const Icon(Icons.arrow_back_rounded),
-                onPressed: () => setState(() => _selectedAccount = null),
-              )
-            : Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Image.asset('assets/logo.png'),
-              ),
-        actions: [
-          if (_selectedAccount == null)
-            IconButton(
+      appBar: GlobalHeader(
+        title: _selectedAccount == null
+            ? 'Expense Accounts'
+            : 'Account: $_selectedAccount',
+        showBackButton: _selectedAccount != null,
+      ),
+      floatingActionButton: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (_selectedAccount == null) ...[
+            FloatingActionButton.extended(
+              heroTag: 'new_account_fab',
               onPressed: () => _showAddAccountDialog(context),
+              backgroundColor: Colors.black,
+              foregroundColor: Colors.white,
               icon: const Icon(Icons.create_new_folder_rounded),
-              tooltip: 'New Account',
+              label: const Text('New Account'),
             ),
-          IconButton(
+            const SizedBox(height: 12),
+          ],
+          FloatingActionButton.extended(
+            heroTag: 'log_expense_fab',
             onPressed: () => _showAddExpenseDialog(context),
+            backgroundColor: Theme.of(context).primaryColor,
+            foregroundColor: Colors.white,
             icon: const Icon(Icons.add_task_rounded),
-            tooltip: 'Log Expense',
+            label: const Text('Log Expense'),
           ),
         ],
       ),
-      body: _selectedAccount == null
-          ? _buildAccountList(provider)
-          : _buildAccountDetails(provider, _selectedAccount!),
+      body: PopScope(
+        canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+          if (_selectedAccount != null) {
+            setState(() => _selectedAccount = null);
+            
+          }
+          
+        },
+        child: _selectedAccount == null
+            ? _buildAccountList(provider)
+            : _buildAccountDetails(provider, _selectedAccount!),
+      ),
     );
   }
 
@@ -70,7 +85,10 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
           children: [
             Icon(Icons.folder_open_rounded, size: 64, color: Colors.grey[300]),
             const SizedBox(height: 16),
-            const Text('No accounts created yet', style: TextStyle(color: Colors.grey, fontSize: 16)),
+            const Text(
+              'No accounts created yet',
+              style: TextStyle(color: Colors.grey, fontSize: 16),
+            ),
             const SizedBox(height: 24),
             PrimaryButton(
               label: 'Create First Account',
@@ -87,21 +105,38 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
       itemCount: accounts.length,
       itemBuilder: (context, index) {
         final acc = accounts[index];
-        final accExpenses = provider.dailyExpenses.where((e) => e.accountName == acc).toList();
-        final unsettledCount = accExpenses.where((e) => e.status == 'Unsettled').length;
-        final totalAmount = accExpenses.fold<double>(0, (sum, e) => sum + e.amount);
+        final accExpenses = provider.dailyExpenses
+            .where((e) => e.accountName == acc)
+            .toList();
+        final unsettledCount = accExpenses
+            .where((e) => e.status == 'Unsettled')
+            .length;
+        final amountAmount = accExpenses.fold<double>(
+          0,
+          (sum, e) => sum + e.amount,
+        );
 
         return Card(
           margin: const EdgeInsets.only(bottom: 12),
           child: ListTile(
-            contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 20,
+              vertical: 8,
+            ),
             leading: CircleAvatar(
               backgroundColor: AppColors.primaryLightGreen,
-              child: const Icon(Icons.folder_rounded, color: AppColors.primaryGreen),
+              child: const Icon(
+                Icons.folder_rounded,
+                color: AppColors.primaryGreen,
+              ),
             ),
             title: Text(
               acc,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.black),
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+                color: Colors.black,
+              ),
             ),
             subtitle: Row(
               children: [
@@ -112,7 +147,10 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
                 if (unsettledCount > 0) ...[
                   const SizedBox(width: 12),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 2,
+                    ),
                     decoration: BoxDecoration(
                       color: AppColors.orangeAccent.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(10),
@@ -133,7 +171,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'KES ${totalAmount.toStringAsFixed(0)}',
+                  'KES ${amountAmount.toStringAsFixed(0)}',
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
@@ -152,7 +190,9 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
   }
 
   Widget _buildAccountDetails(ExpenseProvider provider, String accountName) {
-    final accExpenses = provider.dailyExpenses.where((e) => e.accountName == accountName).toList();
+    final accExpenses = provider.dailyExpenses
+        .where((e) => e.accountName == accountName)
+        .toList();
 
     if (accExpenses.isEmpty) {
       return Center(
@@ -195,7 +235,10 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
                     color: Colors.red.withValues(alpha: 0.05),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(Icons.shopping_bag_outlined, color: Colors.red),
+                  child: const Icon(
+                    Icons.shopping_bag_outlined,
+                    color: Colors.red,
+                  ),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -204,12 +247,20 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
                     children: [
                       Text(
                         exp.title,
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          color: Colors.black,
+                        ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         'KES ${exp.amount.toStringAsFixed(0)}',
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.red),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          color: Colors.red,
+                        ),
                       ),
                     ],
                   ),
@@ -218,15 +269,22 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
                 GestureDetector(
                   onTap: () => _toggleStatus(context, provider, exp),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
-                      color: isSettled ? const Color(0xFFE6F7DF) : const Color(0xFFFFF0C8),
+                      color: isSettled
+                          ? const Color(0xFFE6F7DF)
+                          : const Color(0xFFFFF0C8),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
                       exp.status.toUpperCase(),
                       style: TextStyle(
-                        color: isSettled ? const Color(0xFF5AB75A) : const Color(0xFFB57A00),
+                        color: isSettled
+                            ? const Color(0xFF5AB75A)
+                            : const Color(0xFFB57A00),
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
                       ),
@@ -241,7 +299,11 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
     );
   }
 
-  void _toggleStatus(BuildContext context, ExpenseProvider provider, dynamic exp) {
+  void _toggleStatus(
+    BuildContext context,
+    ExpenseProvider provider,
+    dynamic exp,
+  ) {
     if (exp.id == null) return;
     final nextStatus = exp.status == 'Settled' ? 'Unsettled' : 'Settled';
     provider.updateExpenseStatus(exp.id!, nextStatus);
@@ -253,14 +315,20 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('New Expense Account', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
+        title: const Text(
+          'New Expense Account',
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+        ),
         content: TextField(
           controller: controller,
           decoration: InputDecoration(
             hintText: 'Account Name (e.g. Gas Supplier)',
             filled: true,
             fillColor: Colors.grey[100],
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
           ),
         ),
         actions: [
@@ -271,7 +339,9 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
           ElevatedButton(
             onPressed: () {
               if (controller.text.trim().isNotEmpty) {
-                context.read<ExpenseProvider>().addAccount(controller.text.trim());
+                context.read<ExpenseProvider>().addAccount(
+                  controller.text.trim(),
+                );
                 Navigator.pop(context);
               }
             },
@@ -293,8 +363,13 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          title: const Text('Log Expense', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: const Text(
+            'Log Expense',
+            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+          ),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -305,10 +380,15 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
                     labelText: 'Select Account',
                     filled: true,
                     fillColor: Colors.grey[100],
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
                   ),
                   items: provider.accounts
-                      .map((acc) => DropdownMenuItem(value: acc, child: Text(acc)))
+                      .map(
+                        (acc) => DropdownMenuItem(value: acc, child: Text(acc)),
+                      )
                       .toList(),
                   onChanged: (val) {
                     if (val != null) {
@@ -323,7 +403,10 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
                     hintText: 'Description (e.g. 50L Water)',
                     filled: true,
                     fillColor: Colors.grey[100],
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -333,7 +416,10 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
                     hintText: 'Amount (KES)',
                     filled: true,
                     fillColor: Colors.grey[100],
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
                   ),
                   keyboardType: TextInputType.number,
                 ),
@@ -341,21 +427,34 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('Status:', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
+                    const Text(
+                      'Status:',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
+                    ),
                     Row(
                       children: [
                         GestureDetector(
                           onTap: () => setState(() => tempStatus = 'Settled'),
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
                             decoration: BoxDecoration(
-                              color: tempStatus == 'Settled' ? const Color(0xFFE6F7DF) : Colors.grey[200],
+                              color: tempStatus == 'Settled'
+                                  ? const Color(0xFFE6F7DF)
+                                  : Colors.grey[200],
                               borderRadius: BorderRadius.circular(16),
                             ),
                             child: Text(
                               'SETTLED',
                               style: TextStyle(
-                                color: tempStatus == 'Settled' ? const Color(0xFF5AB75A) : Colors.grey[600],
+                                color: tempStatus == 'Settled'
+                                    ? const Color(0xFF5AB75A)
+                                    : Colors.grey[600],
                                 fontWeight: FontWeight.bold,
                                 fontSize: 11,
                               ),
@@ -366,15 +465,22 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
                         GestureDetector(
                           onTap: () => setState(() => tempStatus = 'Unsettled'),
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
                             decoration: BoxDecoration(
-                              color: tempStatus == 'Unsettled' ? const Color(0xFFFFF0C8) : Colors.grey[200],
+                              color: tempStatus == 'Unsettled'
+                                  ? const Color(0xFFFFF0C8)
+                                  : Colors.grey[200],
                               borderRadius: BorderRadius.circular(16),
                             ),
                             child: Text(
                               'UNSETTLED',
                               style: TextStyle(
-                                color: tempStatus == 'Unsettled' ? const Color(0xFFB57A00) : Colors.grey[600],
+                                color: tempStatus == 'Unsettled'
+                                    ? const Color(0xFFB57A00)
+                                    : Colors.grey[600],
                                 fontWeight: FontWeight.bold,
                                 fontSize: 11,
                               ),

@@ -1,11 +1,13 @@
-import 'package:flutter/material.dart' hide MenuItemButton;
+import 'package:flutter/material.dart' ;
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
-import '../../providers/menu_provider.dart';
-import '../../providers/order_provider.dart';
+import '../../providers/product_provider.dart';
+import '../../providers/sale_provider.dart';
 import '../../providers/report_provider.dart';
-import '../../../data/models/menu_item.dart';
+import '../../../data/models/product.dart';
 import '../../widgets/custom_widgets.dart';
+
+import '../../widgets/global_header.dart';
 
 class POSScreen extends StatefulWidget {
   const POSScreen({super.key});
@@ -17,44 +19,28 @@ class POSScreen extends StatefulWidget {
 class _POSScreenState extends State<POSScreen> {
   @override
   Widget build(BuildContext context) {
-    final menu = Provider.of<MenuProvider>(context);
-    final order = Provider.of<OrderProvider>(context);
+    final menu = Provider.of<ProductProvider>(context);
+    final sale = Provider.of<SaleProvider>(context);
     final allItems = menu.items;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('New Order'),
-        leading: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Image.asset('assets/logo.png'),
-        ),
-        actions: [
-          IconButton(
-            onPressed: () => order.clearCart(),
-            icon: const Icon(Icons.refresh),
-            tooltip: 'Clear Cart',
-          ),
-        ],
-      ),
+      appBar: const GlobalHeader(title: 'New Sale', showBackButton: false),
       body: LayoutBuilder(
         builder: (context, constraints) {
           bool isSmallScreen = constraints.maxWidth < 700;
-          
+
           if (isSmallScreen) {
             return Column(
               children: [
-                Expanded(child: _buildMenuGrid(menu, order)),
-                _buildCartSummary(context, order, allItems),
+                Expanded(child: _buildMenuGrid(menu, sale)),
+                _buildCartSummary(context, sale, allItems),
               ],
             );
           }
 
           return Row(
             children: [
-              Expanded(
-                flex: 3,
-                child: _buildMenuGrid(menu, order),
-              ),
+              Expanded(flex: 3, child: _buildMenuGrid(menu, sale)),
               Container(
                 width: 350,
                 decoration: BoxDecoration(
@@ -70,9 +56,9 @@ class _POSScreenState extends State<POSScreen> {
                 ),
                 child: Column(
                   children: [
-                    _buildCartHeader(context, order),
-                    Expanded(child: _buildCartList(order, allItems)),
-                    _buildCartFooter(context, order, allItems),
+                    _buildCartHeader(context, sale),
+                    Expanded(child: _buildCartList(sale, allItems)),
+                    _buildCartFooter(context, sale, allItems),
                   ],
                 ),
               ),
@@ -83,11 +69,11 @@ class _POSScreenState extends State<POSScreen> {
     );
   }
 
-  Widget _buildMenuGrid(MenuProvider menu, OrderProvider order) {
+  Widget _buildMenuGrid(ProductProvider menu, SaleProvider sale) {
     if (menu.isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
-    
+
     if (menu.activeItems.isEmpty) {
       return const Center(child: Text('No active items in menu'));
     }
@@ -103,11 +89,11 @@ class _POSScreenState extends State<POSScreen> {
       itemCount: menu.activeItems.length,
       itemBuilder: (context, index) {
         final item = menu.activeItems[index];
-        return MenuItemButton(
+        return ProductButton(
           name: item.name,
           price: item.price,
           onTap: () {
-            order.addToCart(item);
+            sale.addToCart(item);
             Feedback.forTap(context);
           },
         );
@@ -115,14 +101,14 @@ class _POSScreenState extends State<POSScreen> {
     );
   }
 
-  Widget _buildCartHeader(BuildContext context, OrderProvider order) {
+  Widget _buildCartHeader(BuildContext context, SaleProvider sale) {
     return Padding(
       padding: const EdgeInsets.all(20),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           const Text(
-            'Order Details',
+            'Sale Details',
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           Container(
@@ -132,7 +118,7 @@ class _POSScreenState extends State<POSScreen> {
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
-              '${order.cart.length} items',
+              '${sale.cart.length} items',
               style: TextStyle(
                 color: Theme.of(context).primaryColor,
                 fontWeight: FontWeight.bold,
@@ -144,15 +130,22 @@ class _POSScreenState extends State<POSScreen> {
     );
   }
 
-  Widget _buildCartList(OrderProvider order, List<MenuItem> allItems) {
-    if (order.cart.isEmpty) {
+  Widget _buildCartList(SaleProvider sale, List<Product> allItems) {
+    if (sale.cart.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.shopping_cart_outlined, size: 64, color: Colors.grey[300]),
+            Icon(
+              Icons.shopping_cart_outlined,
+              size: 64,
+              color: Colors.grey[300],
+            ),
             const SizedBox(height: 16),
-            Text('Your cart is empty', style: TextStyle(color: Colors.grey[500])),
+            Text(
+              'Your cart is empty',
+              style: TextStyle(color: Colors.grey[500]),
+            ),
           ],
         ),
       );
@@ -160,26 +153,30 @@ class _POSScreenState extends State<POSScreen> {
 
     return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 20),
-      itemCount: order.cart.length,
+      itemCount: sale.cart.length,
       itemBuilder: (context, index) {
-        final itemId = order.cart.keys.elementAt(index);
-        final qty = order.cart[itemId]!;
+        final itemId = sale.cart.keys.elementAt(index);
+        final qty = sale.cart[itemId]!;
         final item = allItems.firstWhere((i) => i.id == itemId);
         return CartItemTile(
           name: item.name,
           price: item.price,
           quantity: qty,
-          onAdd: () => order.addToCart(item),
-          onRemove: () => order.removeFromCart(item),
-          onDelete: () => order.clearItem(item),
+          onAdd: () => sale.addToCart(item),
+          onRemove: () => sale.removeFromCart(item),
+          onDelete: () => sale.clearItem(item),
         );
       },
     );
   }
 
-  Widget _buildCartFooter(BuildContext context, OrderProvider order, List<MenuItem> allItems) {
-    final total = order.calculateTotal(allItems);
-    
+  Widget _buildCartFooter(
+    BuildContext context,
+    SaleProvider sale,
+    List<Product> allItems,
+  ) {
+    final amount = sale.calculateTotal(allItems);
+
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -191,10 +188,17 @@ class _POSScreenState extends State<POSScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Total Amount', style: TextStyle(color: Colors.grey[600], fontSize: 16)),
               Text(
-                'KES ${total.toStringAsFixed(0)}',
-                style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: Color(0xFF1B5E20)),
+                'Total Amount',
+                style: TextStyle(color: Colors.grey[600], fontSize: 16),
+              ),
+              Text(
+                'KES ${amount.toStringAsFixed(0)}',
+                style: const TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w900,
+                  color: Color(0xFF1B5E20),
+                ),
               ),
             ],
           ),
@@ -204,7 +208,9 @@ class _POSScreenState extends State<POSScreen> {
               Expanded(
                 child: PrimaryButton(
                   label: 'PROCESS PAYMENT',
-                  onTap: order.cart.isEmpty ? null : () => _showPayDialog(context, order, allItems),
+                  onTap: sale.cart.isEmpty
+                      ? null
+                      : () => _showPayDialog(context, sale, allItems),
                   color: const Color(0xFF2E7D32),
                   icon: Icons.check_circle,
                 ),
@@ -213,7 +219,13 @@ class _POSScreenState extends State<POSScreen> {
               Expanded(
                 child: PrimaryButton(
                   label: 'FREQUENT CUST',
-                  onTap: order.cart.isEmpty ? null : () => _showFrequentCustomerDialog(context, order, allItems),
+                  onTap: sale.cart.isEmpty
+                      ? null
+                      : () => _showFrequentCustomerDialog(
+                          context,
+                          sale,
+                          allItems,
+                        ),
                   color: Colors.blueAccent,
                   icon: Icons.people_rounded,
                 ),
@@ -222,23 +234,34 @@ class _POSScreenState extends State<POSScreen> {
           ),
           const SizedBox(height: 12),
           TextButton(
-            onPressed: order.cart.isEmpty ? null : () => order.clearCart(),
-            child: const Text('CANCEL ORDER', style: TextStyle(color: Colors.red)),
+            onPressed: sale.cart.isEmpty ? null : () => sale.clearCart(),
+            child: const Text(
+              'CANCEL ORDER',
+              style: TextStyle(color: Colors.red),
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildCartSummary(BuildContext context, OrderProvider order, List<MenuItem> allItems) {
-    if (order.cart.isEmpty) return const SizedBox.shrink();
-    
+  Widget _buildCartSummary(
+    BuildContext context,
+    SaleProvider sale,
+    List<Product> allItems,
+  ) {
+    if (sale.cart.isEmpty) return const SizedBox.shrink();
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 10, offset: const Offset(0, -2))
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 10,
+            offset: const Offset(0, -2),
+          ),
         ],
       ),
       child: Row(
@@ -248,10 +271,16 @@ class _POSScreenState extends State<POSScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text('${order.totalItemCount} items', style: TextStyle(color: Colors.grey[600])),
                 Text(
-                  'KES ${order.calculateTotal(allItems).toStringAsFixed(0)}',
-                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  '${sale.amountItemCount} items',
+                  style: TextStyle(color: Colors.grey[600]),
+                ),
+                Text(
+                  'KES ${sale.calculateTotal(allItems).toStringAsFixed(0)}',
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ],
             ),
@@ -259,7 +288,7 @@ class _POSScreenState extends State<POSScreen> {
           PrimaryButton(
             label: 'PAY',
             width: 150,
-            onTap: () => _bottomSheetCart(context, order, allItems),
+            onTap: () => _bottomSheetCart(context, sale, allItems),
             icon: Icons.shopping_basket,
           ),
         ],
@@ -267,7 +296,11 @@ class _POSScreenState extends State<POSScreen> {
     );
   }
 
-  void _bottomSheetCart(BuildContext context, OrderProvider order, List<MenuItem> allItems) {
+  void _bottomSheetCart(
+    BuildContext context,
+    SaleProvider sale,
+    List<Product> allItems,
+  ) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -281,17 +314,28 @@ class _POSScreenState extends State<POSScreen> {
         child: Column(
           children: [
             const SizedBox(height: 12),
-            Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2))),
-            _buildCartHeader(context, order),
-            Expanded(child: _buildCartList(order, allItems)),
-            _buildCartFooter(context, order, allItems),
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            _buildCartHeader(context, sale),
+            Expanded(child: _buildCartList(sale, allItems)),
+            _buildCartFooter(context, sale, allItems),
           ],
         ),
       ),
     );
   }
 
-  void _showPayDialog(BuildContext context, OrderProvider order, List<MenuItem> allItems) {
+  void _showPayDialog(
+    BuildContext context,
+    SaleProvider sale,
+    List<Product> allItems,
+  ) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -305,11 +349,25 @@ class _POSScreenState extends State<POSScreen> {
             Row(
               children: [
                 Expanded(
-                  child: _paymentOption(context, order, 'Cash', Icons.money, Colors.green, allItems),
+                  child: _paymentOption(
+                    context,
+                    sale,
+                    'Cash',
+                    Icons.money,
+                    Colors.green,
+                    allItems,
+                  ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: _paymentOption(context, order, 'M-Pesa', Icons.phone_android, Colors.blue, allItems),
+                  child: _paymentOption(
+                    context,
+                    sale,
+                    'M-Pesa',
+                    Icons.phone_android,
+                    Colors.blue,
+                    allItems,
+                  ),
                 ),
               ],
             ),
@@ -319,7 +377,14 @@ class _POSScreenState extends State<POSScreen> {
     );
   }
 
-  Widget _paymentOption(BuildContext context, OrderProvider order, String type, IconData icon, Color color, List<MenuItem> allItems) {
+  Widget _paymentOption(
+    BuildContext context,
+    SaleProvider sale,
+    String type,
+    IconData icon,
+    Color color,
+    List<Product> allItems,
+  ) {
     return InkWell(
       onTap: () async {
         String finalMethod = type;
@@ -329,27 +394,28 @@ class _POSScreenState extends State<POSScreen> {
           finalMethod = 'M-Pesa (Receipt: $receipt)';
         }
 
-        final success = await order.processOrder(finalMethod, allItems);
+        final success = await sale.processOrder(finalMethod, allItems);
         if (success) {
           if (context.mounted) context.read<ReportProvider>().refreshReports();
-          final total = order.calculateTotal(allItems);
-          final receiptText = "EUTON HOTEL RECEIPT\n------------------\nMethod: $finalMethod\nDate: ${DateTime.now()}\nTotal: KES $total\nThank you!";
-          
+          final amount = sale.calculateTotal(allItems);
+          final receiptText =
+              "EUTON HOTEL RECEIPT\n------------------\nMethod: $finalMethod\nDate: ${DateTime.now()}\nTotal: KES $amount\nThank you!";
+
           if (context.mounted) Navigator.pop(context); // Close dialog
           if (context.mounted && ModalRoute.of(context)?.settings.name != '/') {
-             // If we opened this from bottom sheet, we might need to pop again
+            // If we opened this from bottom sheet, we might need to pop again
           }
-          
+
           if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 behavior: SnackBarBehavior.floating,
                 backgroundColor: Colors.green,
-                content: Text('Order Successfully Paid via $type!'),
+                content: Text('Sale Successfully Paid via $type!'),
               ),
             );
           }
-          
+
           Share.share(receiptText);
         }
       },
@@ -364,7 +430,10 @@ class _POSScreenState extends State<POSScreen> {
           children: [
             Icon(icon, color: color, size: 32),
             const SizedBox(height: 8),
-            Text(type, style: TextStyle(fontWeight: FontWeight.bold, color: color)),
+            Text(
+              type,
+              style: TextStyle(fontWeight: FontWeight.bold, color: color),
+            ),
           ],
         ),
       ),
@@ -385,7 +454,10 @@ class _POSScreenState extends State<POSScreen> {
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, null), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, null),
+            child: const Text('Cancel'),
+          ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, ctrl.text.trim()),
             child: const Text('Confirm'),
@@ -395,7 +467,11 @@ class _POSScreenState extends State<POSScreen> {
     );
   }
 
-  void _showFrequentCustomerDialog(BuildContext context, OrderProvider order, List<MenuItem> allItems) {
+  void _showFrequentCustomerDialog(
+    BuildContext context,
+    SaleProvider sale,
+    List<Product> allItems,
+  ) {
     final nameCtrl = TextEditingController();
     final officeCtrl = TextEditingController();
     final phoneCtrl = TextEditingController();
@@ -409,43 +485,70 @@ class _POSScreenState extends State<POSScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: 'Customer Name', prefixIcon: Icon(Icons.person))),
+              TextField(
+                controller: nameCtrl,
+                decoration: const InputDecoration(
+                  labelText: 'Customer Name',
+                  prefixIcon: Icon(Icons.person),
+                ),
+              ),
               const SizedBox(height: 12),
-              TextField(controller: officeCtrl, decoration: const InputDecoration(labelText: 'Office Name / Address', prefixIcon: Icon(Icons.business))),
+              TextField(
+                controller: officeCtrl,
+                decoration: const InputDecoration(
+                  labelText: 'Office Name / Address',
+                  prefixIcon: Icon(Icons.business),
+                ),
+              ),
               const SizedBox(height: 12),
-              TextField(controller: phoneCtrl, decoration: const InputDecoration(labelText: 'Phone Number', prefixIcon: Icon(Icons.phone))),
+              TextField(
+                controller: phoneCtrl,
+                decoration: const InputDecoration(
+                  labelText: 'Phone Number',
+                  prefixIcon: Icon(Icons.phone),
+                ),
+              ),
             ],
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
           ElevatedButton(
             onPressed: () async {
               if (nameCtrl.text.isEmpty) return;
-              
+
               // We simulate addToOutsideCart for all cart items since Frequent Customer goes through Outside Orders logic
-              order.clearOutsideCart();
-              order.cart.forEach((itemId, qty) {
+              sale.clearOutsideCart();
+              sale.cart.forEach((itemId, qty) {
                 final item = allItems.firstWhere((i) => i.id == itemId);
                 for (int i = 0; i < qty; i++) {
-                  order.addToOutsideCart(item);
+                  sale.addToOutsideCart(item);
                 }
               });
 
-              final locStr = '${officeCtrl.text.trim()} | ${phoneCtrl.text.trim()}';
-              final success = await order.createOutsideOrder(
+              final locStr =
+                  '${officeCtrl.text.trim()} | ${phoneCtrl.text.trim()}';
+              final success = await sale.createSale(
                 customerName: nameCtrl.text.trim(),
                 location: locStr,
                 allItems: allItems,
               );
-              
+
               if (success) {
-                order.clearCart();
+                sale.clearCart();
                 if (ctx.mounted) {
                   Navigator.pop(ctx);
-                  if (Navigator.canPop(context)) Navigator.pop(context); // close bottom sheet if open
+                  if (Navigator.canPop(context)) {
+                    Navigator.pop(context); // close bottom sheet if open
+                  }
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Sent to Kitchen for Frequent Customer'), backgroundColor: Colors.blue),
+                    const SnackBar(
+                      content: Text('Sent to Kitchen for Frequent Customer'),
+                      backgroundColor: Colors.blue,
+                    ),
                   );
                 }
               }
@@ -457,4 +560,3 @@ class _POSScreenState extends State<POSScreen> {
     );
   }
 }
-

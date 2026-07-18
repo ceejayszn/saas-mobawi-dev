@@ -154,7 +154,7 @@ class SupportScreen extends StatelessWidget {
     final uri = Uri(
       scheme: 'mailto',
       path: email,
-      query: 'subject=Euton Hotel Support Request',
+      query: 'subject=Copy App Support Request',
     );
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri);

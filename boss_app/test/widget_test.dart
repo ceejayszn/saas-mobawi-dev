@@ -1,4 +1,4 @@
-// Basic widget test for Euton Hotel admin app.
+// Basic widget test for Copy App admin app.
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
@@ -12,7 +12,7 @@ void main() {
     await tester.pumpWidget(
       ChangeNotifierProvider.value(
         value: themeProvider,
-        child: const EutonHotelApp(),
+        child: const CopyApp(),
       ),
     );
     // App should at least render a Scaffold-based widget

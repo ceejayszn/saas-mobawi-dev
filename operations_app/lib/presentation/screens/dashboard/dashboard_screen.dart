@@ -5,7 +5,6 @@ import '../pos/pos_screen.dart';
 import '../expenses/expenses_screen.dart';
 import '../../widgets/custom_widgets.dart';
 import '../orders/orders_screen.dart';
-import '../cook/cook_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -20,7 +19,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
   final List<Widget> _screens = [
     const _DashboardHome(),
     const POSScreen(),
-    const CookScreen(),
     const ExpensesScreen(),
     const OrdersScreen(),
   ];
@@ -62,7 +60,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
           items: const [
             BottomNavigationBarItem(icon: Icon(Icons.dashboard_rounded), label: 'Home'),
             BottomNavigationBarItem(icon: Icon(Icons.touch_app_rounded), label: 'Sell'),
-            BottomNavigationBarItem(icon: Icon(Icons.restaurant_rounded), label: 'Cook'),
             BottomNavigationBarItem(icon: Icon(Icons.receipt_long_rounded), label: 'Expenses'),
             BottomNavigationBarItem(icon: Icon(Icons.delivery_dining_rounded), label: 'Orders'),
           ],
@@ -152,7 +149,7 @@ class _DashboardHomeState extends State<_DashboardHome> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Euton Hotel'),
+        title: const Text('Copy App'),
         leading: Padding(
           padding: const EdgeInsets.all(8.0),
           child: Image.asset('assets/logo.png'),
@@ -186,7 +183,7 @@ class _DashboardHomeState extends State<_DashboardHome> {
                   children: [
                     SummaryCard(
                       label: 'Total Sales',
-                      value: 'KES ${report.totalSales.toStringAsFixed(0)}',
+                      value: 'KES ${report.amountSales.toStringAsFixed(0)}',
                       icon: Icons.payments_rounded,
                       color: Colors.green,
                     ),
@@ -218,7 +215,7 @@ class _DashboardHomeState extends State<_DashboardHome> {
                       onTap: () => _showExpensesModal(context, report),
                       child: SummaryCard(
                         label: 'Expenses (Tap)',
-                        value: 'KES ${report.totalExpenses.toStringAsFixed(0)}',
+                        value: 'KES ${report.amountExpenses.toStringAsFixed(0)}',
                         icon: Icons.money_off_rounded,
                         color: Colors.red,
                       ),

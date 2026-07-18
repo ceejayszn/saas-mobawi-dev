@@ -114,7 +114,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                           const SizedBox(height: 2),
                           const Text(
-                            'Euton Hotel',
+                            'Copy App',
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 18,

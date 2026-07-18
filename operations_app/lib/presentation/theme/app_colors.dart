@@ -7,7 +7,7 @@ class AppColors {
   static const Color primaryLightGreen = Color(0xFFE8F5E9); // light green background tint
   
   // Backgrounds
-  static const Color scaffoldBackground = Color(0xFFF4F6F4); // Very light grey/green tint
+  static const Color scaffoldBackground = Color(0xFFE5E5E5); // Darker corporate grey
   static const Color surfaceWhite = Colors.white;
   
   // Text colors (fully black text for high contrast as requested)

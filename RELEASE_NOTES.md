@@ -2,7 +2,7 @@
 
 ## Version 1.0.0 - "The Foundation"
 
-Welcome to the new Euton Hotel POS Platform! We have successfully rebuilt the core engine of our software to be faster, more reliable, and fully cloud-connected.
+Welcome to the new Copy App POS Platform! We have successfully rebuilt the core engine of our software to be faster, more reliable, and fully cloud-connected.
 
 ### Key Highlights:
 1. **The Boss App**: We have introduced a brand new executive dashboard. Owners can now log in securely and see live sales data, weekly trends, and system health status.

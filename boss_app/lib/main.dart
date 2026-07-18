@@ -19,7 +19,7 @@ import 'data/repositories/i_audit_log_repository.dart';
 import 'data/repositories/local_audit_log_repository.dart';
 import 'data/repositories/api_audit_log_repository.dart';
 
-const bool useCloudBackend = false;
+const bool useCloudBackend = true;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -65,13 +65,13 @@ void main() async {
           update: (_, repo, prev) => prev ?? StaffProvider(repo),
         ),
       ],
-      child: const EutonHotelApp(),
+      child: const CopyApp(),
     ),
   );
 }
 
-class EutonHotelApp extends StatelessWidget {
-  const EutonHotelApp({super.key});
+class CopyApp extends StatelessWidget {
+  const CopyApp({super.key});
 
   @override
   Widget build(BuildContext context) {

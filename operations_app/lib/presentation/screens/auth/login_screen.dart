@@ -1,5 +1,5 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import '../../../data/security/pos_auth_service.dart';
 import '../../theme/app_colors.dart';
 import '../dashboard/dashboard_screen.dart';
@@ -23,7 +23,6 @@ class _LoginScreenState extends State<LoginScreen>
 
   bool _isFirstRun = false;
   bool _isLoading = true;
-  bool _obscurePin = true;
   String? _errorMessage;
 
   late AnimationController _shakeController;
@@ -36,9 +35,10 @@ class _LoginScreenState extends State<LoginScreen>
       vsync: this,
       duration: const Duration(milliseconds: 400),
     );
-    _shakeAnimation = Tween<double>(begin: 0, end: 12)
-        .chain(CurveTween(curve: Curves.elasticIn))
-        .animate(_shakeController);
+    _shakeAnimation = Tween<double>(
+      begin: 0,
+      end: 12,
+    ).chain(CurveTween(curve: Curves.elasticIn)).animate(_shakeController);
     _initialize();
   }
 
@@ -75,10 +75,16 @@ class _LoginScreenState extends State<LoginScreen>
     if (!mounted) return;
 
     if (result == null) {
-      // Success — navigate to dashboard
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const DashboardScreen()),
-      );
+      _pinController.clear();
+      _confirmPinController.clear();
+      if (!_isFirstRun && pin == '0000') {
+        setState(() => _isLoading = false);
+        _showForceChangePinDialog();
+      } else {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const DashboardScreen()),
+        );
+      }
     } else {
       // Error — show message and shake
       setState(() {
@@ -90,6 +96,204 @@ class _LoginScreenState extends State<LoginScreen>
       _confirmPinController.clear();
       _focusNode.requestFocus();
     }
+  }
+
+  void _showForceChangePinDialog() {
+    final newPinController = TextEditingController();
+    final confirmPinController = TextEditingController();
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Change Default PIN'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'For security, you must change the default PIN before proceeding.',
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: newPinController,
+                obscureText: true,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: 'New PIN',
+                  hintText: 'Min 4 digits',
+                ),
+              ),
+              TextField(
+                controller: confirmPinController,
+                obscureText: true,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: 'Confirm New PIN',
+                  hintText: 'Min 4 digits',
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () async {
+                final newPin = newPinController.text.trim();
+                final confirmPin = confirmPinController.text.trim();
+                if (newPin.isEmpty || newPin == '0000') {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Please enter a secure non-default PIN.'),
+                    ),
+                  );
+                  return;
+                }
+                if (newPin != confirmPin) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('PINs do not match.')),
+                  );
+                  return;
+                }
+                if (newPin.length < 4) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('PIN must be at least 4 digits.'),
+                    ),
+                  );
+                  return;
+                }
+                await PosAuthService.instance.forceResetPin(newPin);
+                if (context.mounted) {
+                  Navigator.of(context).pop();
+                  Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(builder: (_) => const DashboardScreen()),
+                  );
+                }
+              },
+              child: const Text('Save & Continue'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showForgotPinDialog() {
+    final phoneController = TextEditingController();
+    final newPinController = TextEditingController();
+    final confirmPinController = TextEditingController();
+    bool codeValidated = false;
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('Reset PIN via Admin'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (!codeValidated) ...[
+                    const Text(
+                      'Please contact the admin (MOBAWI LLC at 0718901990) and enter the admin phone number to reset your PIN:',
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: phoneController,
+                      keyboardType: TextInputType.phone,
+                      decoration: const InputDecoration(
+                        labelText: 'Admin Phone Number',
+                        hintText: 'e.g., 0718901990',
+                      ),
+                    ),
+                  ] else ...[
+                    const Text('Enter your new PIN below:'),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: newPinController,
+                      obscureText: true,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(labelText: 'New PIN'),
+                    ),
+                    TextField(
+                      controller: confirmPinController,
+                      obscureText: true,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(
+                        labelText: 'Confirm New PIN',
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () async {
+                    if (!codeValidated) {
+                      final input = phoneController.text.trim();
+                      if (PosAuthService.instance.validateRecoveryCode(input)) {
+                        setState(() {
+                          codeValidated = true;
+                        });
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Invalid recovery number.'),
+                          ),
+                        );
+                      }
+                    } else {
+                      final newPin = newPinController.text.trim();
+                      final confirmPin = confirmPinController.text.trim();
+                      if (newPin.isEmpty || newPin == '0000') {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'Please enter a secure non-default PIN.',
+                            ),
+                          ),
+                        );
+                        return;
+                      }
+                      if (newPin != confirmPin) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('PINs do not match.')),
+                        );
+                        return;
+                      }
+                      if (newPin.length < 4) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('PIN must be at least 4 digits.'),
+                          ),
+                        );
+                        return;
+                      }
+                      await PosAuthService.instance.forceResetPin(newPin);
+                      if (context.mounted) {
+                        Navigator.of(context).pop();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'PIN successfully reset! Login with your new PIN.',
+                            ),
+                          ),
+                        );
+                      }
+                    }
+                  },
+                  child: Text(codeValidated ? 'Reset PIN' : 'Verify'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
   }
 
   @override
@@ -123,9 +327,9 @@ class _LoginScreenState extends State<LoginScreen>
                   offset: Offset(
                     _shakeController.isAnimating
                         ? _shakeAnimation.value *
-                            ((_shakeController.value * 10).toInt().isEven
-                                ? 1
-                                : -1)
+                              ((_shakeController.value * 10).toInt().isEven
+                                  ? 1
+                                  : -1)
                         : 0,
                     0,
                   ),
@@ -153,7 +357,7 @@ class _LoginScreenState extends State<LoginScreen>
 
                   // Title
                   Text(
-                    _isFirstRun ? 'Create Your PIN' : 'Enter PIN',
+                    _isFirstRun ? 'Create Your PIN' : 'POS Software',
                     style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -208,8 +412,11 @@ class _LoginScreenState extends State<LoginScreen>
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.error_outline,
-                              color: AppColors.redAccent, size: 20),
+                          const Icon(
+                            Icons.error_outline,
+                            color: AppColors.redAccent,
+                            size: 20,
+                          ),
                           const SizedBox(width: 10),
                           Expanded(
                             child: Text(
@@ -259,12 +466,25 @@ class _LoginScreenState extends State<LoginScreen>
                             ),
                     ),
                   ),
+                  const SizedBox(height: 16),
+                  if (!_isFirstRun)
+                    TextButton(
+                      onPressed: _showForgotPinDialog,
+                      child: const Text(
+                        'Forgot PIN?',
+                        style: TextStyle(
+                          color: AppColors.primaryGreen,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
 
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 24),
 
                   // Branding
                   Text(
-                    'Secured by MOBAWI',
+                    'Developed by MOBAWI LLC',
                     style: TextStyle(
                       fontSize: 11,
                       color: AppColors.textHint.withValues(alpha: 0.6),
@@ -286,15 +506,20 @@ class _LoginScreenState extends State<LoginScreen>
     FocusNode? focusNode,
     ValueChanged<String>? onSubmitted,
   }) {
+    final isConfirm = controller == _confirmPinController;
     return TextField(
       controller: controller,
       focusNode: focusNode,
-      obscureText: _obscurePin,
+      obscureText: true,
+      enableSuggestions: false,
+      autocorrect: false,
       keyboardType: TextInputType.number,
-      inputFormatters: [
-        FilteringTextInputFormatter.digitsOnly,
-        LengthLimitingTextInputFormatter(12),
-      ],
+      maxLength: 4, // Natively limit to 4 digits
+      onChanged: (val) {
+        if (!isConfirm && val.length == 4) {
+          _handleSubmit();
+        }
+      },
       onSubmitted: onSubmitted,
       style: const TextStyle(
         fontSize: 22,
@@ -304,6 +529,7 @@ class _LoginScreenState extends State<LoginScreen>
       ),
       textAlign: TextAlign.center,
       decoration: InputDecoration(
+        counterText: '', // Hide default character counter
         labelText: label,
         labelStyle: const TextStyle(color: AppColors.textHint),
         filled: true,
@@ -314,19 +540,7 @@ class _LoginScreenState extends State<LoginScreen>
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide:
-              const BorderSide(color: AppColors.primaryGreen, width: 2),
-        ),
-        suffixIcon: IconButton(
-          icon: Icon(
-            _obscurePin ? Icons.visibility_off : Icons.visibility,
-            color: AppColors.textHint,
-          ),
-          onPressed: () {
-            setState(() {
-              _obscurePin = !_obscurePin;
-            });
-          },
+          borderSide: const BorderSide(color: AppColors.primaryGreen, width: 2),
         ),
       ),
     );

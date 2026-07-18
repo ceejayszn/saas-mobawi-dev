@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import '../../../data/models/menu_item.dart';
-import '../../../data/models/outside_order.dart';
-import '../../providers/menu_provider.dart';
-import '../../providers/order_provider.dart';
+import '../../../data/models/product.dart';
+import '../../providers/product_provider.dart';
+import '../../providers/sale_provider.dart';
 import '../../providers/report_provider.dart';
+
+import '../../widgets/global_header.dart';
+import '../../../data/models/sale.dart';
 
 class OrdersScreen extends StatefulWidget {
   const OrdersScreen({super.key});
@@ -14,7 +16,8 @@ class OrdersScreen extends StatefulWidget {
   State<OrdersScreen> createState() => _OrdersScreenState();
 }
 
-class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderStateMixin {
+class _OrdersScreenState extends State<OrdersScreen>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
   @override
@@ -22,8 +25,8 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
     super.initState();
     _tabController = TabController(length: 3, vsync: this, initialIndex: 0);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<OrderProvider>().loadOutsideOrders();
-      context.read<MenuProvider>().loadMenu();
+      context.read<SaleProvider>().loadSales();
+      context.read<ProductProvider>().loadMenu();
     });
   }
 
@@ -37,14 +40,19 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
     showDialog(
       context: context,
       builder: (dialogContext) {
-        return Consumer<OrderProvider>(
+        return Consumer<SaleProvider>(
           builder: (context, provider, _) {
             final list = provider.frequentCustomers;
             return AlertDialog(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
               title: const Text(
                 'Frequent Customers',
-                style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
               ),
               content: SizedBox(
                 width: double.maxFinite,
@@ -63,30 +71,46 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                         itemCount: list.length,
                         itemBuilder: (context, index) {
                           final customer = list[index];
-                          final name = customer['customer_name'] as String? ?? 'Unknown';
-                          final lastLoc = customer['last_location'] as String? ?? 'N/A';
-                          final count = customer['total_orders'] as int? ?? 0;
-                          final spent = ((customer['total_spent'] ?? 0) as num).toDouble();
+                          final name =
+                              customer['customer_name'] as String? ?? 'Unknown';
+                          final lastLoc =
+                              customer['last_location'] as String? ?? 'N/A';
+                          final count = customer['amount_orders'] as int? ?? 0;
+                          final spent = ((customer['amount_spent'] ?? 0) as num)
+                              .toDouble();
                           return ListTile(
                             contentPadding: EdgeInsets.zero,
                             leading: CircleAvatar(
                               backgroundColor: const Color(0xFFE8F5E9),
                               child: Text(
                                 name.isNotEmpty ? name[0].toUpperCase() : '?',
-                                style: const TextStyle(color: Color(0xFF2E7D32), fontWeight: FontWeight.bold),
+                                style: const TextStyle(
+                                  color: Color(0xFF2E7D32),
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
                             title: Text(
                               name,
-                              style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black,
+                              ),
                             ),
                             subtitle: Text(
-                              'Last location: $lastLoc\nTotal orders: $count',
-                              style: TextStyle(color: Colors.grey[700], fontSize: 12),
+                              'Last location: $lastLoc\nTotal sales: $count',
+                              style: TextStyle(
+                                color: Colors.grey[700],
+                                fontSize: 12,
+                              ),
                             ),
                             trailing: Text(
                               'KES ${spent.toStringAsFixed(0)}',
-                              style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF2E7D32), fontSize: 15),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF2E7D32),
+                                fontSize: 15,
+                              ),
                             ),
                             isThreeLine: true,
                           );
@@ -96,7 +120,13 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(dialogContext),
-                  child: const Text('CLOSE', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF2E7D32))),
+                  child: const Text(
+                    'CLOSE',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF2E7D32),
+                    ),
+                  ),
                 ),
               ],
             );
@@ -111,70 +141,68 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(
-        toolbarHeight: 88,
-        titleSpacing: 24,
-        title: Row(
-          children: [
-            Image.asset('assets/logo.png', width: 34, height: 34),
-            const SizedBox(width: 10),
-            const Text(
-              'Outside Orders',
-              style: TextStyle(
-                fontWeight: FontWeight.w800,
-                fontSize: 23,
-                color: Colors.white,
-              ),
-            ),
-          ],
-        ),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(56),
-          child: Container(
-            color: Colors.white,
-            child: TabBar(
-              controller: _tabController,
-              labelColor: theme.primaryColor,
-              unselectedLabelColor: const Color(0xFFA8A8A8),
-              indicatorColor: theme.primaryColor,
-              indicatorWeight: 4,
-              indicatorSize: TabBarIndicatorSize.tab,
-              labelStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
-              unselectedLabelStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-              tabs: const [
-                Tab(text: 'PENDING'),
-                Tab(text: 'DELIVERING'),
-                Tab(text: 'PAID'),
-              ],
-            ),
-          ),
-        ),
+      appBar: const GlobalHeader(
+        title: 'Outside Orders',
+        showBackButton: false,
       ),
       body: Container(
         color: const Color(0xFFF2F5FB),
-        child: Consumer<OrderProvider>(
-          builder: (context, orders, child) {
-            return TabBarView(
-              controller: _tabController,
-              children: [
-                _buildOrdersList(
-                  [...orders.pendingOutsideOrders, ...orders.readyOutsideOrders]
-                    ..sort((a, b) => b.createdAt.compareTo(a.createdAt)),
-                  emptyMessage: 'No pending or ready orders.',
-                  onOrderTap: (order) => _showPendingOrderAction(order),
+        child: Column(
+          children: [
+            Container(
+              color: Colors.white,
+              child: TabBar(
+                controller: _tabController,
+                labelColor: theme.primaryColor,
+                unselectedLabelColor: const Color(0xFFA8A8A8),
+                indicatorColor: theme.primaryColor,
+                indicatorWeight: 4,
+                indicatorSize: TabBarIndicatorSize.tab,
+                labelStyle: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
                 ),
-                _buildOrdersList(
-                  orders.deliveringOutsideOrders,
-                  emptyMessage: 'No orders out for delivery.',
-                  onOrderTap: (order) => _showDeliveringOrderAction(order),
+                unselectedLabelStyle: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
                 ),
-                _buildOrdersList(
-                  orders.paidOutsideOrders,
-                  emptyMessage: 'No paid orders.',
-                ),
-              ],
-            );
-          },
+                tabs: const [
+                  Tab(text: 'PENDING'),
+                  Tab(text: 'DELIVERING'),
+                  Tab(text: 'PAID'),
+                ],
+              ),
+            ),
+            Expanded(
+              child: Consumer<SaleProvider>(
+                builder: (context, sales, child) {
+                  return TabBarView(
+                    controller: _tabController,
+                    children: [
+                      _buildOrdersList(
+                        [
+                          ...sales.pendingSales,
+                          ...sales.readySales,
+                        ]..sort((a, b) => (b.createdAt ?? DateTime.now()).compareTo(a.createdAt ?? DateTime.now())),
+                        emptyMessage: 'No pending or ready sales.',
+                        onOrderTap: (sale) => _showPendingOrderAction(sale),
+                      ),
+                      _buildOrdersList(
+                        sales.deliveringSales,
+                        emptyMessage: 'No sales out for delivery.',
+                        onOrderTap: (sale) =>
+                            _showDeliveringOrderAction(sale),
+                      ),
+                      _buildOrdersList(
+                        sales.paidSales,
+                        emptyMessage: 'No paid sales.',
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ],
         ),
       ),
       floatingActionButton: Padding(
@@ -204,13 +232,22 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
               heroTag: 'new_order_fab',
               onPressed: _showNewOrderSheet,
               elevation: 10,
-              extendedPadding: const EdgeInsets.symmetric(horizontal: 34, vertical: 20),
+              extendedPadding: const EdgeInsets.symmetric(
+                horizontal: 34,
+                vertical: 20,
+              ),
               backgroundColor: const Color(0xFF1B5E20),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
               icon: const Icon(Icons.add, color: Colors.white, size: 34),
               label: const Text(
-                'New Order',
-                style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w500),
+                'New Sale',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ),
           ],
@@ -220,11 +257,11 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
   }
 
   Widget _buildOrdersList(
-    List<OutsideOrder> orders, {
+    List<Sale> sales, {
     required String emptyMessage,
-    void Function(OutsideOrder)? onOrderTap,
+    void Function(Sale)? onOrderTap,
   }) {
-    if (orders.isEmpty) {
+    if (sales.isEmpty) {
       return Center(
         child: Text(
           emptyMessage,
@@ -234,20 +271,28 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
     }
 
     return ListView.separated(
-      padding: const EdgeInsets.fromLTRB(18, 20, 18, 180), // extra padding for multiple FABs
-      itemCount: orders.length,
+      padding: const EdgeInsets.fromLTRB(
+        18,
+        20,
+        18,
+        180,
+      ), // extra padding for multiple FABs
+      itemCount: sales.length,
       separatorBuilder: (_, index) => const SizedBox(height: 18),
       itemBuilder: (context, index) => _OrderCard(
-        order: orders[index],
-        onTap: onOrderTap != null ? () => onOrderTap(orders[index]) : null,
+        sale: sales[index],
+        onTap: onOrderTap != null ? () => onOrderTap(sales[index]) : null,
       ),
     );
   }
 
-  Future<void> _showPendingOrderAction(OutsideOrder order) async {
-    if (order.status.toLowerCase() == 'pending') {
+  Future<void> _showPendingOrderAction(Sale sale) async {
+    if (sale.status.toLowerCase() == 'pending') {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Order is still being prepared by the Kitchen.'), backgroundColor: Colors.orange),
+        const SnackBar(
+          content: Text('Sale is still being prepared by the Kitchen.'),
+          backgroundColor: Colors.orange,
+        ),
       );
       return;
     }
@@ -256,8 +301,10 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
       context: context,
       builder: (dialogContext) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Outside Order Action'),
-        content: Text('Mark order for ${order.customerName} as Out for Delivery?'),
+        title: const Text('Outside Sale Action'),
+        content: Text(
+          'Mark sale for ${sale.customerName} as Out for Delivery?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
@@ -265,11 +312,13 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
           ),
           FilledButton(
             onPressed: () async {
-              final orderProvider = context.read<OrderProvider>();
+              final orderProvider = context.read<SaleProvider>();
               Navigator.pop(dialogContext);
-              await orderProvider.markOutsideOrderDelivering(order.id!);
+              await orderProvider.markSaleDelivering(sale.id!);
             },
-            style: FilledButton.styleFrom(backgroundColor: const Color(0xFFF57C00)),
+            style: FilledButton.styleFrom(
+              backgroundColor: const Color(0xFFF57C00),
+            ),
             child: const Text('Out for Delivery'),
           ),
         ],
@@ -277,13 +326,15 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
     );
   }
 
-  Future<void> _showDeliveringOrderAction(OutsideOrder order) async {
+  Future<void> _showDeliveringOrderAction(Sale sale) async {
     await showDialog<void>(
       context: context,
       builder: (dialogContext) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Text('Mark as paid'),
-        content: Text('Choose payment method to complete the delivery for ${order.customerName}.'),
+        content: Text(
+          'Choose payment method to complete the delivery for ${sale.customerName}.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
@@ -291,23 +342,31 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
           ),
           TextButton(
             onPressed: () async {
-              final orderProvider = context.read<OrderProvider>();
+              final orderProvider = context.read<SaleProvider>();
               final reportProvider = context.read<ReportProvider>();
               Navigator.pop(dialogContext);
-              await orderProvider.markOutsideOrderPaid(order.id!, paymentMethod: 'Cash');
+              await orderProvider.markSalePaid(
+                sale.id!,
+                paymentMethod: 'Cash',
+              );
               await reportProvider.refreshReports();
             },
             child: const Text('Cash'),
           ),
           FilledButton(
             onPressed: () async {
-              final orderProvider = context.read<OrderProvider>();
+              final orderProvider = context.read<SaleProvider>();
               final reportProvider = context.read<ReportProvider>();
               Navigator.pop(dialogContext);
-              await orderProvider.markOutsideOrderPaid(order.id!, paymentMethod: 'M-Pesa');
+              await orderProvider.markSalePaid(
+                sale.id!,
+                paymentMethod: 'M-Pesa',
+              );
               await reportProvider.refreshReports();
             },
-            style: FilledButton.styleFrom(backgroundColor: const Color(0xFF2E7D32)),
+            style: FilledButton.styleFrom(
+              backgroundColor: const Color(0xFF2E7D32),
+            ),
             child: const Text('M-Pesa'),
           ),
         ],
@@ -331,15 +390,17 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
           minChildSize: 0.7,
           expand: false,
           builder: (sheetDraggableContext, controller) {
-            return Consumer2<MenuProvider, OrderProvider>(
-              builder: (context, menu, orders, child) {
+            return Consumer2<ProductProvider, SaleProvider>(
+              builder: (context, menu, sales, child) {
                 final items = menu.activeItems;
-                final total = orders.calculateOutsideTotal(items);
+                final amount = sales.calculateOutsideTotal(items);
 
                 return Container(
                   decoration: const BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.vertical(top: Radius.circular(36)),
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(36),
+                    ),
                   ),
                   child: SafeArea(
                     top: false,
@@ -356,8 +417,12 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                         ),
                         const SizedBox(height: 22),
                         const Text(
-                          'New Outside Order',
-                          style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800, color: Colors.black),
+                          'New Outside Sale',
+                          style: TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.black,
+                          ),
                         ),
                         const SizedBox(height: 18),
                         Expanded(
@@ -366,7 +431,8 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                             padding: EdgeInsets.only(
                               left: 20,
                               right: 20,
-                              bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+                              bottom:
+                                  MediaQuery.of(context).viewInsets.bottom + 24,
                             ),
                             child: Form(
                               key: formKey,
@@ -377,19 +443,29 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                                     controller: customerController,
                                     icon: Icons.person,
                                     hintText: 'Customer Name',
-                                    validator: (value) => value == null || value.trim().isEmpty ? 'Enter customer name' : null,
+                                    validator: (value) =>
+                                        value == null || value.trim().isEmpty
+                                        ? 'Enter customer name'
+                                        : null,
                                   ),
                                   const SizedBox(height: 18),
                                   _FormFieldCard(
                                     controller: locationController,
                                     icon: Icons.location_on,
                                     hintText: 'Location / Area',
-                                    validator: (value) => value == null || value.trim().isEmpty ? 'Enter location / area' : null,
+                                    validator: (value) =>
+                                        value == null || value.trim().isEmpty
+                                        ? 'Enter location / area'
+                                        : null,
                                   ),
                                   const SizedBox(height: 24),
                                   const Text(
                                     'Select Items:',
-                                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: Colors.black),
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.w800,
+                                      color: Colors.black,
+                                    ),
                                   ),
                                   const SizedBox(height: 16),
                                   SizedBox(
@@ -397,45 +473,73 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                                     child: ListView.separated(
                                       scrollDirection: Axis.horizontal,
                                       itemCount: items.length,
-                                      separatorBuilder: (_, index) => const SizedBox(width: 18),
+                                      separatorBuilder: (_, index) =>
+                                          const SizedBox(width: 18),
                                       itemBuilder: (context, index) {
                                         final item = items[index];
-                                        final quantity = orders.outsideCart[item.id] ?? 0;
+                                        final quantity =
+                                            sales.outsideCart[item.id] ?? 0;
                                         return _OutsideMenuCard(
                                           item: item,
                                           quantity: quantity,
-                                          onAdd: () => orders.addToOutsideCart(item),
-                                          onRemove: () => orders.removeFromOutsideCart(item),
+                                          onAdd: () =>
+                                              sales.addToOutsideCart(item),
+                                          onRemove: () => sales
+                                              .removeFromOutsideCart(item),
                                         );
                                       },
                                     ),
                                   ),
                                   const SizedBox(height: 28),
                                   PrimaryActionButton(
-                                    label: total > 0 ? 'SAVE ORDER · KES ${total.toStringAsFixed(0)}' : 'SAVE ORDER',
-                                    enabled: total > 0,
-                                    onTap: total <= 0
+                                    label: amount > 0
+                                        ? 'SAVE ORDER · KES ${amount.toStringAsFixed(0)}'
+                                        : 'SAVE ORDER',
+                                    enabled: amount > 0,
+                                    onTap: amount <= 0
                                         ? null
                                         : () async {
-                                            if (!formKey.currentState!.validate()) return;
-                                            final orderProvider = context.read<OrderProvider>();
-                                            final messenger = ScaffoldMessenger.of(this.context);
-                                            final navigator = Navigator.of(sheetContext);
-                                            final success = await orderProvider.createOutsideOrder(
-                                                  customerName: customerController.text.trim(),
-                                                  location: locationController.text.trim(),
+                                            if (!formKey.currentState!
+                                                .validate()) {
+                                              return;
+                                            }
+                                            final orderProvider = context
+                                                .read<SaleProvider>();
+                                            final messenger =
+                                                ScaffoldMessenger.of(
+                                                  this.context,
+                                                );
+                                            final navigator = Navigator.of(
+                                              sheetContext,
+                                            );
+                                            final success = await orderProvider
+                                                .createSale(
+                                                  customerName:
+                                                      customerController.text
+                                                          .trim(),
+                                                  location: locationController
+                                                      .text
+                                                      .trim(),
                                                   allItems: items,
                                                 );
-                                            if (!sheetDraggableContext.mounted || !mounted) return;
+                                            if (!sheetDraggableContext
+                                                    .mounted ||
+                                                !mounted) {
+                                              return;
+                                            }
                                             if (success) {
                                               navigator.pop();
                                               _tabController.animateTo(0);
                                               messenger.showSnackBar(
-                                                const SnackBar(content: Text('Outside order saved')),
+                                                const SnackBar(
+                                                  content: Text(
+                                                    'Outside sale saved',
+                                                  ),
+                                                ),
                                               );
                                             }
                                           },
-                                    ),
+                                  ),
                                 ],
                               ),
                             ),
@@ -453,24 +557,21 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
     );
 
     if (mounted) {
-      context.read<OrderProvider>().clearOutsideCart();
+      context.read<SaleProvider>().clearOutsideCart();
     }
   }
 }
 
 class _OrderCard extends StatelessWidget {
-  const _OrderCard({
-    required this.order,
-    this.onTap,
-  });
+  const _OrderCard({required this.sale, this.onTap});
 
-  final OutsideOrder order;
+  final Sale sale;
   final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    final dateLabel = DateFormat('yyyy-MM-dd HH:mm').format(order.createdAt);
-    final statusLower = order.status.toLowerCase();
+    final dateLabel = DateFormat('yyyy-MM-dd HH:mm').format(sale.createdAt ?? DateTime.now());
+    final statusLower = sale.status.toLowerCase();
     final isPaid = statusLower == 'paid';
     final isDelivering = statusLower == 'delivering';
 
@@ -536,11 +637,7 @@ class _OrderCard extends StatelessWidget {
                       color: statusIconBg,
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(
-                      statusIcon,
-                      color: Colors.white,
-                      size: 22,
-                    ),
+                    child: Icon(statusIcon, color: Colors.white, size: 22),
                   ),
                 ),
               ),
@@ -550,20 +647,31 @@ class _OrderCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      order.customerName,
+                      sale.customerName ?? 'Unknown',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: Colors.black),
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.black,
+                      ),
                     ),
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        const Icon(Icons.location_on, color: Color(0xFF9E9E9E), size: 16),
+                        const Icon(
+                          Icons.location_on,
+                          color: Color(0xFF9E9E9E),
+                          size: 16,
+                        ),
                         const SizedBox(width: 4),
                         Expanded(
                           child: Text(
-                            order.location,
-                            style: const TextStyle(fontSize: 14, color: Color(0xFF9E9E9E)),
+                            sale.location ?? 'Unknown',
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: Color(0xFF9E9E9E),
+                            ),
                           ),
                         ),
                       ],
@@ -571,7 +679,10 @@ class _OrderCard extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       dateLabel,
-                      style: const TextStyle(fontSize: 12, color: Color(0xFFB1B1B1)),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Color(0xFFB1B1B1),
+                      ),
                     ),
                   ],
                 ),
@@ -581,7 +692,7 @@ class _OrderCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    'KES ${order.total.toStringAsFixed(0)}',
+                    'KES ${sale.amount.toStringAsFixed(0)}',
                     style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.w800,
@@ -590,13 +701,16 @@ class _OrderCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
                     decoration: BoxDecoration(
                       color: statusBadgeColor,
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Text(
-                      order.status.toUpperCase(),
+                      sale.status.toUpperCase(),
                       style: TextStyle(
                         color: statusTextColor,
                         fontSize: 12,
@@ -639,7 +753,10 @@ class _FormFieldCard extends StatelessWidget {
         hintStyle: const TextStyle(fontSize: 22, color: Color(0xFF6C6C6C)),
         filled: true,
         fillColor: Colors.white,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 20,
+        ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: Color(0xFFD2D2D2), width: 1.5),
@@ -665,7 +782,7 @@ class _OutsideMenuCard extends StatelessWidget {
     required this.onRemove,
   });
 
-  final MenuItem item;
+  final Product item;
   final int quantity;
   final VoidCallback onAdd;
   final VoidCallback onRemove;
@@ -686,7 +803,11 @@ class _OutsideMenuCard extends StatelessWidget {
           Text(
             item.name.toLowerCase(),
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Colors.black),
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+              color: Colors.black,
+            ),
           ),
           const SizedBox(height: 6),
           Text(
@@ -708,7 +829,11 @@ class _OutsideMenuCard extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 18),
                 child: Text(
                   '$quantity',
-                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: Colors.black),
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.black,
+                  ),
                 ),
               ),
               _CircleIconButton(
@@ -780,10 +905,14 @@ class PrimaryActionButton extends StatelessWidget {
       child: ElevatedButton(
         onPressed: enabled ? onTap : null,
         style: ElevatedButton.styleFrom(
-          backgroundColor: enabled ? const Color(0xFF1B5E20) : const Color(0xFFE7E7E7),
+          backgroundColor: enabled
+              ? const Color(0xFF1B5E20)
+              : const Color(0xFFE7E7E7),
           foregroundColor: enabled ? Colors.white : const Color(0xFF969696),
           elevation: 0,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+          ),
         ),
         child: Text(
           label,

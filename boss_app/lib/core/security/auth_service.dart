@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'package:http/http.dart' as http;
+import '../api/api_client.dart';
 import '../constants/app_constants.dart';
 import '../security/crypto_utils.dart';
 import '../storage/secure_storage.dart';
@@ -41,14 +43,20 @@ class AuthService {
     if (_isInitialized) return;
     _isInitialized = true;
 
+    final resetFlag = await SecureStorage.getString('eh_reset_to_default_v5');
+    if (resetFlag != 'true') {
+      await SecureStorage.remove(AppConstants.keyPasswordHash);
+      await SecureStorage.remove(AppConstants.keyPasswordSalt);
+      await SecureStorage.remove(AppConstants.keySecondaryPasswordHash);
+      await SecureStorage.remove(AppConstants.keySecondaryPasswordSalt);
+      await SecureStorage.saveString('eh_reset_to_default_v5', 'true');
+    }
+
     final existingHash = await SecureStorage.getString(AppConstants.keyPasswordHash);
     if (existingHash == null || existingHash.isEmpty) {
-      // First run — if a default PIN is configured, hash it.
-      // Otherwise, the app must present a first-run PIN setup screen.
       if (AppConstants.defaultAdminPin.isNotEmpty) {
         await _setPasswordInternal(AppConstants.defaultAdminPin, isPrimary: true);
       }
-      // When defaultAdminPin is empty, isFirstRun will return true.
     }
   }
 
@@ -92,7 +100,31 @@ class AuthService {
       );
     }
 
-    // Verify against primary password
+    // Try online authentication first
+    try {
+      final response = await http.post(
+        Uri.parse('${ApiClient.instance.baseUrl}/api/auth/login'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'username': '${ApiClient.instance.businessId}_boss',
+          'password': sanitized,
+        }),
+      ).timeout(const Duration(seconds: 5));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final token = data['token'] as String?;
+        ApiClient.instance.setToken(token);
+        await _onLoginSuccess();
+        return const AuthResult(type: AuthResultType.success);
+      } else if (response.statusCode == 401) {
+        return await _onLoginFailure();
+      }
+    } catch (_) {
+      // Offline fallback: verify against local credentials
+    }
+
+    // Verify against primary password locally
     final isPrimary = await _verifyPin(sanitized, isPrimary: true);
     final isSecondary = !isPrimary && await _verifyPin(sanitized, isPrimary: false);
 
@@ -340,5 +372,18 @@ class AuthService {
     final lockoutUntil = DateTime.tryParse(lockoutUntilStr);
     if (lockoutUntil == null || DateTime.now().isAfter(lockoutUntil)) return 0;
     return lockoutUntil.difference(DateTime.now()).inSeconds;
+  }
+
+  /// Validates the admin recovery code (phone number).
+  bool validateRecoveryCode(String code) {
+    final cleanCode = code.replaceAll(RegExp(r'\s+|-'), '');
+    return cleanCode == AppConstants.developerPhone;
+  }
+
+  /// Forces the primary PIN to be reset.
+  Future<void> forceResetPin(String newPin) async {
+    await _setPasswordInternal(newPin, isPrimary: true);
+    await SecureStorage.saveString(AppConstants.keyFailedAttempts, '0');
+    await SecureStorage.saveString(AppConstants.keyLockoutUntil, '');
   }
 }
