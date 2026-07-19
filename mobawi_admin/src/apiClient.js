@@ -26,11 +26,6 @@ export const login = async (username, password) => {
   return response.data;
 };
 
-export const logout = () => {
-  localStorage.removeItem('nexus_token');
-  localStorage.removeItem('nexus_user');
-  window.location.href = '/login';
-};
 
 export const getOverview = async () => {
   const response = await apiClient.get('/api/nexus/overview');
@@ -48,12 +43,12 @@ export const getApplications = async () => {
 };
 
 export const suspendBusiness = async (id) => {
-  const response = await apiClient.post(`/api/admin/businesses/${id}/suspend`);
+  const response = await apiClient.put(`/api/admin/businesses/${id}/suspend`);
   return response.data;
 };
 
 export const activateBusiness = async (id) => {
-  const response = await apiClient.post(`/api/admin/businesses/${id}/activate`);
+  const response = await apiClient.put(`/api/admin/businesses/${id}/activate`);
   return response.data;
 };
 

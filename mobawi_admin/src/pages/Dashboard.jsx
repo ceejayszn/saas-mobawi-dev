@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { getOverview, getBusinesses, getApplications, logout, suspendBusiness, activateBusiness } from '../apiClient';
+import { getOverview, getBusinesses, getApplications, suspendBusiness, activateBusiness } from '../apiClient';
 
 function Dashboard() {
   const [overview, setOverview] = useState(null);
@@ -23,7 +23,7 @@ function Dashboard() {
       setApps(appData);
     } catch (err) {
       console.error(err);
-      if (err.response?.status === 401) logout();
+      if (err.response?.status === 401) window.location.reload();
     } finally {
       setLoading(false);
     }
@@ -48,7 +48,6 @@ function Dashboard() {
     <div className="dashboard-container">
       <div className="header">
         <h1>Mobawi Nexus Control</h1>
-        <button className="btn-primary" onClick={logout} style={{ background: 'var(--danger)' }}>Logout</button>
       </div>
 
       <div className="grid-cards">
