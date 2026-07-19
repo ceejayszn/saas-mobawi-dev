@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: mobawi-admin-frontend
+    env: static
+    buildCommand: npm install && npm run build
+    publishPath: dist
+    autoDeploy: true
+    envVars:
+      - key: VITE_API_URL
+        value: https://mobawi-backend-api.onrender.com
