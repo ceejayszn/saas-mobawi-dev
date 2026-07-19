@@ -4,7 +4,7 @@ import cors from 'cors';
 
 // --- CORS Configuration ---
 // Only allow requests from known frontend origins.
-const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'http://localhost:3000')
+const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'http://localhost:3000,https://mobawi-admin.onrender.com')
   .split(',')
   .map((o) => o.trim());
 
